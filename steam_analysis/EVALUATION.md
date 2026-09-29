@@ -9,17 +9,17 @@ worse than the baseline.
 
 ## Reception: will the game be Very Positive (80%+ positive reviews)?
 
-Games with 50+ reviews: 9,249 for training, 2,003 for testing.
-43.9% of training games and 52.9% of test games were Very Positive.
+Games with 50+ reviews: 7,633 for training, 2,003 for testing.
+42.3% of training games and 52.9% of test games were Very Positive.
 
 | Method | AUC | Very Positive among the model's top 20% | Brier score | Brier vs. base rate (95% interval) | Calibration error |
 |---|---|---|---|---|---|
-| Base rate (share of Very Positive games in training) | 0.500 | 50.0% | 0.2572 | — | 0.090 |
-| Logistic regression: store info | 0.715 | 75.7% | 0.2280 | -0.0356 to -0.0228 | 0.119 |
-| Gradient boosting: store info | 0.729 | 77.5% | 0.2237 | -0.0404 to -0.0264 | 0.118 |
-| Logistic regression: store info + track record | 0.740 | 79.2% | 0.2176 | -0.0467 to -0.0323 | 0.105 |
-| Gradient boosting: store info + track record | 0.741 | 77.7% | 0.2172 | -0.0472 to -0.0320 | 0.102 |
-| Logistic regression: store info + track record + description | 0.750 | 81.0% | 0.2146 | -0.0501 to -0.0356 | 0.106 |
+| Base rate (share of Very Positive games in training) | 0.500 | — | 0.2603 | — | 0.106 |
+| Logistic regression: store info | 0.718 | 75.0% | 0.2280 | -0.0389 to -0.0259 | 0.122 |
+| Gradient boosting: store info | 0.728 | 76.7% | 0.2258 | -0.0413 to -0.0275 | 0.124 |
+| Logistic regression: store info + track record | 0.742 | 79.2% | 0.2176 | -0.0503 to -0.0353 | 0.109 |
+| Gradient boosting: store info + track record | 0.742 | 81.0% | 0.2174 | -0.0508 to -0.0352 | 0.106 |
+| Logistic regression: store info + track record + description | 0.752 | 80.5% | 0.2146 | -0.0533 to -0.0386 | 0.109 |
 
 - **AUC:** the chance that the model ranks a random Very Positive game above a random other game
   (0.5 = no better than chance, 1 = perfect).

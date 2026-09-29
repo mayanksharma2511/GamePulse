@@ -1,0 +1,2 @@
+reception_test_games,reception_test_rate,reception_auc,reception_top20,reception_brier_before,reception_brier_after,reception_calibration_error_before,reception_calibration_error_after,reception_mean_prob_before,reception_mean_prob_after,reach_test_games,reach_half_width,reach_coverage,reach_mae,comparables_pool,comparables_share_genre,comparables_share_genre_random,comparables_vp_auc
+2003,0.529,0.733,0.782,0.2238,0.2156,0.119,0.082,0.41,0.448,8120,30.1,0.773,20.01,9249,0.666,0.489,0.612

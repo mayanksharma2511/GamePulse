@@ -50,14 +50,19 @@ def scaled(Xtr, Xte):
 
 
 def top_share(y, p, frac=0.2):
-    """Share of the games ranked in the top `frac` by the model that were actually positive."""
+    """Share of the games ranked in the top `frac` by the model that were actually positive.
+    Undefined for a constant prediction, which does not rank games at all."""
+    if np.ptp(p) == 0:
+        return np.nan
     k = int(len(p) * frac)
-    return float(np.mean(y[np.argsort(-p)[:k]]))
+    return float(np.mean(y[np.argsort(-p, kind="stable")[:k]]))
 
 
 def calibration_error(y, p, bins=10):
     """Average gap between predicted probability and observed rate, over ten equal-size groups."""
-    order = np.argsort(p)
+    if np.ptp(p) == 0:
+        return float(abs(p[0] - y.mean()))
+    order = np.argsort(p, kind="stable")
     groups = np.array_split(order, bins)
     return float(np.mean([abs(p[g].mean() - y[g].mean()) for g in groups]))
 
@@ -74,7 +79,7 @@ def bootstrap_diff(metric, y, p, p_base, rng):
 
 
 def evaluate_reception(df, rng):
-    data = df[df["very_positive"].notna()]
+    data = df[df["in_study"] & df["very_positive"].notna()]
     train, test = data[data["release_year"] < TEST_YEAR], data[data["release_year"] == TEST_YEAR]
     y_tr, y_te = train["very_positive"].values.astype(int), test["very_positive"].values.astype(int)
     vocab = vocabulary(train)
@@ -149,7 +154,7 @@ def main() -> None:
         return "—" if pd.isna(x) else f"{x:+.{digits}f}"
 
     rec_rows = "\n".join(
-        f"| {r.method} | {r.auc:.3f} | {r.top20_hit_rate:.1%} | {r.brier:.4f} | "
+        f"| {r.method} | {r.auc:.3f} | {'—' if pd.isna(r.top20_hit_rate) else f'{r.top20_hit_rate:.1%}'} | {r.brier:.4f} | "
         f"{'—' if pd.isna(r.brier_vs_base_low) else f'{fmt(r.brier_vs_base_low, 4)} to {fmt(r.brier_vs_base_high, 4)}'} | "
         f"{r.calibration_error:.3f} |" for r in rec.itertuples())
     reach_rows = "\n".join(
