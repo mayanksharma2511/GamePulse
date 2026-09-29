@@ -4,7 +4,7 @@ GamePulse is a market-intelligence dashboard for video game publishers. It uses 
 
 It was built as a semester-long Software Engineering and Project Management project, using sprints and user stories.
 
-![Dashboard](screenshots/dashboard.png)
+
 
 ## Features
 
@@ -76,8 +76,4 @@ node server.js        # runs on http://localhost:3000
 
 3. Open `frontend/index.html` in your browser.
 
-## Screenshots
 
-| Similarity Analysis | Success Prediction |
-|---|---|
-| ![Similarity](screenshots/similarity.png) | ![Prediction](screenshots/prediction.png) |
