@@ -1,78 +1,86 @@
-import sys
 import json
 import os
-import pandas as pd
+import sys
 from datetime import datetime
 
+MONTHS = ["", "January", "February", "March", "April", "May", "June", "July",
+          "August", "September", "October", "November", "December"]
 
-def predict_score(genre, price, release_date):
-    """Rule-based score built from the historical ratings of games in one genre.
 
-    This is a heuristic, not a trained model: the adjustments (+10, -20, +/-5)
-    are fixed by hand. See the README for how it works and its limitations.
+def load_model():
+    path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "model.json")
+    with open(path) as f:
+        return json.load(f)
+
+
+def predict_rating(genre_group, publisher, price, release_date):
+    """Estimate a game's rating out of 10 with an 80% range.
+
+    Uses the ridge regression exported by analysis/train_model.py. Each input's
+    contribution is shown relative to an average game in the training data.
     """
-    base_dir = os.path.dirname(os.path.abspath(__file__))
-    csv_path = os.path.join(base_dir, 'finalData.csv')
+    m = load_model()
 
+    if genre_group not in m["categorical"]["genre_group"]:
+        return {"error": f"Unknown genre group '{genre_group}'."}
     try:
-        df = pd.read_csv(csv_path)
-    except FileNotFoundError:
-        return {"error": "finalData.csv not found."}
-
-    df.columns = df.columns.str.strip()
-
-    try:
-        user_price = float(price)
+        price = float(price)
     except ValueError:
         return {"error": "Price must be a number."}
-
+    if price < 0:
+        return {"error": "Price cannot be negative."}
     try:
-        release_month = datetime.strptime(release_date, "%Y-%m-%d").month
+        month = datetime.strptime(release_date, "%Y-%m-%d").month
     except ValueError:
         return {"error": "Release date must be in YYYY-MM-DD format."}
 
-    # 1. Games in exactly the chosen genre
-    genre_data = df[df['Genre'].str.lower() == genre.lower()].copy()
-    if genre_data.empty:
-        return {"error": f"No games in the dataset have the genre '{genre}'."}
+    pub = None if publisher.strip().lower() in ("", "unknown") else m["publishers"].get(publisher.strip())
+    publisher_value = pub["history"] if pub else m["overall_average_rating"]
+    publisher_games = pub["games"] if pub else 0
 
-    genre_data['Month'] = pd.to_datetime(genre_data['Released Date'], errors='coerce').dt.month
+    inputs = {"genre_group": genre_group, "release_month": str(month),
+              "Price": price, "price_imputed": 0.0, "publisher_history": publisher_value}
 
-    # 2. Base score: the genre's average rating as a percentage
-    avg_genre_rating = genre_data['Rating'].mean()
-    score = (avg_genre_rating / 10.0) * 100
+    # Prediction = average game + each input's contribution
+    contributions = {}
+    for f in ["genre_group", "release_month"]:
+        coef = m["categorical"][f].get(inputs[f], 0.0)
+        contributions[f] = coef - m["categorical_training_average"][f]
+    for f, p in m["numeric"].items():
+        contributions[f] = p["coef"] * (inputs[f] - p["mean"]) / p["scale"]
 
-    # 3. Price adjustment against the genre's average price
-    avg_price = genre_data['Price'].mean()
-    if user_price <= avg_price:
-        score += 10
-    elif user_price > avg_price * 1.5:
-        score -= 20
-    else:
-        score -= ((user_price - avg_price) / avg_price) * 15
+    average_game = m["intercept"] + sum(m["categorical_training_average"].values())
+    estimate = average_game + sum(contributions.values())
+    half = m["interval_half_width"]
 
-    # 4. Release-month adjustment
-    month_data = genre_data[genre_data['Month'] == release_month]
-    if not month_data.empty:
-        score += 5 if month_data['Rating'].mean() > avg_genre_rating else -5
-
-    final_score = min(max(int(score), 15), 98)
-    risk_level = "Low" if final_score > 75 else "Medium" if final_score > 50 else "High"
+    labels = {
+        "genre_group": f"Genre group: {genre_group}",
+        "release_month": f"Release month: {MONTHS[month]}",
+        "Price": f"Price: ${price:.2f}",
+        "publisher_history": (f"Publisher: {publisher.strip()} ({publisher_games} rated games in training data)"
+                              if pub else "Publisher: no rated games in training data"),
+    }
+    factors = [{"factor": labels[f], "effect": round(v, 2)}
+               for f, v in contributions.items() if f in labels]
+    factors.sort(key=lambda x: abs(x["effect"]), reverse=True)
 
     return {
-        "score": final_score,
-        "risk_level": risk_level,
-        "games_in_genre": int(len(genre_data)),
-        "games_in_month": int(len(month_data)),
-        "explanation": (
-            f"Based on {len(genre_data)} {genre} games (average rating {avg_genre_rating:.1f}/10, "
-            f"average price ${avg_price:.2f}), of which {len(month_data)} were released in the same month."
-        ),
+        "estimate": round(estimate, 1),
+        "range_low": round(max(0.0, estimate - half), 1),
+        "range_high": round(min(10.0, estimate + half), 1),
+        "coverage": m["coverage_target"],
+        "average_game": round(average_game, 2),
+        "factors": factors,
+        "genre_group_games": m["genre_group_games"].get(genre_group, 0),
+        "publisher_games": publisher_games,
+        "model": m["trained_on"],
+        "tested_coverage": m["tested_coverage"],
+        "tested_on": m["tested_on"],
     }
 
 
 if __name__ == "__main__":
-    if len(sys.argv) >= 4:
-        print(json.dumps(predict_score(sys.argv[1], sys.argv[2], sys.argv[3])))
+    if len(sys.argv) >= 5:
+        print(json.dumps(predict_rating(sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4])))
     else:
-        print(json.dumps({"error": "Expected genre, price and release date."}))
+        print(json.dumps({"error": "Expected genre group, publisher, price and release date."}))

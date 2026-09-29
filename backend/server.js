@@ -36,13 +36,19 @@ app.post('/api/recommend', (req, res) => {
     runPython('recommend.py', [String(gameName)], res, 'Failed to find similar games.');
 });
 
-// Rating estimate (User Story 2)
+// Rating estimate with an 80% range (User Story 2)
 app.post('/api/predict', (req, res) => {
-    const { genre, price, releaseDate } = req.body;
-    if (!genre || price === undefined || price === '' || !releaseDate) {
-        return res.status(400).json({ error: 'Please provide a genre, price and release date.' });
+    const { genreGroup, publisher, price, releaseDate } = req.body;
+    if (!genreGroup || price === undefined || price === '' || !releaseDate) {
+        return res.status(400).json({ error: 'Please provide a genre group, price and release date.' });
     }
-    runPython('predict.py', [String(genre), String(price), String(releaseDate)], res, 'Prediction failed.');
+    runPython('predict.py', [String(genreGroup), String(publisher || ''), String(price), String(releaseDate)],
+        res, 'Prediction failed.');
+});
+
+// Options for the prediction form, taken from the trained model
+app.get('/api/model-info', (req, res) => {
+    runPython('model_info.py', [], res, 'Failed to load model information.');
 });
 
 // Dashboard and market trends (User Story 3)

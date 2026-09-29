@@ -18,12 +18,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div class="card">Average Price<br><strong>${data.metrics.average_price}</strong></div>
             `;
 
-            // Fill the genre dropdown with genres that have at least 20 games
-            const genreSelect = document.getElementById('pred-genre');
-            genreSelect.innerHTML = data.genre_options
-                .map(g => `<option value="${g}">${g}</option>`)
-                .join('');
-
             // Draw Genre Bar Chart
             new Chart(document.getElementById('genreChart').getContext('2d'), {
                 type: 'bar',
@@ -62,6 +56,22 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     loadDashboard(); // Fire function on page load
+
+    // --- PREDICTION FORM OPTIONS (from the trained model) ---
+    async function loadModelInfo() {
+        try {
+            const response = await fetch('http://localhost:3000/api/model-info');
+            const info = await response.json();
+            if (info.error) throw new Error(info.error);
+            document.getElementById('pred-genre').innerHTML = info.genre_groups
+                .map(g => `<option value="${g}">${g}</option>`).join('');
+            document.getElementById('publisher-list').innerHTML = info.publishers
+                .map(p => `<option value="${p}"></option>`).join('');
+        } catch (error) {
+            console.error('Model info load failed:', error);
+        }
+    }
+    loadModelInfo();
     
     // --- NAVIGATION LOGIC ---
     const navItems = document.querySelectorAll('.nav-links li');
@@ -136,13 +146,14 @@ document.addEventListener('DOMContentLoaded', () => {
             resultsContainer.innerHTML = '<p style="color: red;">Failed to connect to the server.</p>';
         }
     });
-    // --- SUCCESS PREDICTION LOGIC ---
+    // --- RATING ESTIMATE LOGIC ---
     const predictBtn = document.getElementById('predictBtn');
     const resultPanel = document.getElementById('prediction-result');
 
-    if(predictBtn) {
+    if (predictBtn) {
         predictBtn.addEventListener('click', async () => {
-            const genre = document.getElementById('pred-genre').value;
+            const genreGroup = document.getElementById('pred-genre').value;
+            const publisher = document.getElementById('pred-publisher').value;
             const price = document.getElementById('pred-price').value;
             const releaseDate = document.getElementById('pred-date').value;
 
@@ -152,18 +163,34 @@ document.addEventListener('DOMContentLoaded', () => {
                 const response = await fetch('http://localhost:3000/api/predict', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ genre, price, releaseDate })
+                    body: JSON.stringify({ genreGroup, publisher, price, releaseDate })
                 });
                 const data = await response.json();
+                if (data.error) throw new Error(data.error);
 
-                if(data.error) throw new Error(data.error);
+                const factorRows = data.factors.map(f => `
+                    <tr>
+                        <td style="text-align: left; padding: 4px 8px;">${f.factor}</td>
+                        <td style="text-align: right; padding: 4px 8px; color: ${f.effect >= 0 ? '#10b981' : '#f87171'}">
+                            ${f.effect >= 0 ? '+' : ''}${f.effect.toFixed(2)}
+                        </td>
+                    </tr>`).join('');
 
                 resultPanel.innerHTML = `
-                    <h2 style="color: #94a3b8">Success Score</h2>
-                    <div class="success-score">${data.score}</div>
-                    <p>Risk Level: <strong style="color: ${data.risk_level === 'Low' ? '#10b981' : '#f59e0b'}">${data.risk_level}</strong></p>
-                    <p style="margin-top: 15px; color: #94a3b8">${data.explanation}</p>
-                    <p style="margin-top: 10px; color: #64748b; font-size: 0.85rem">Rule-based score out of 100, not a probability. See the README for how it is calculated.</p>
+                    <h2 style="color: #94a3b8">Estimated Rating</h2>
+                    <div class="success-score">${data.estimate.toFixed(1)}<span style="font-size: 1.5rem; color: #94a3b8">/10</span></div>
+                    <p>${Math.round(data.coverage * 100)}% range: <strong>${data.range_low.toFixed(1)} – ${data.range_high.toFixed(1)}</strong></p>
+                    <table style="margin-top: 15px; color: #cbd5e1; font-size: 0.9rem; border-collapse: collapse;">
+                        <tr><td style="text-align: left; padding: 4px 8px; color: #94a3b8">Average game</td>
+                            <td style="text-align: right; padding: 4px 8px; color: #94a3b8">${data.average_game.toFixed(2)}</td></tr>
+                        ${factorRows}
+                    </table>
+                    <p style="margin-top: 15px; color: #64748b; font-size: 0.85rem">
+                        Model trained on ${data.model}. When the same method was tested on ${data.tested_on}, the range
+                        contained the real rating ${(data.tested_coverage * 100).toFixed(1)}% of the time, and the estimate was only
+                        modestly more accurate than always guessing the average.
+                        See analysis/EVALUATION.md and analysis/INTERVALS.md.
+                    </p>
                 `;
             } catch (err) {
                 resultPanel.innerHTML = `<p style="color: red;">Error: ${err.message}</p>`;

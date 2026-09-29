@@ -15,7 +15,7 @@
                 <p>Game market analytics</p>
             </div>
             <ul class="nav-links">
-                <li data-target="predict-view">Success Score</li>
+                <li data-target="predict-view">Rating Estimate</li>
                 <li data-target="trends-view">Market Trends</li>
                 <li class="active" data-target="dashboard-view">Dashboard</li>
                 <li data-target="similarity-view">Similarity Analysis</li>
@@ -34,7 +34,7 @@
                         <canvas id="genreChart"></canvas>
                      </div>
                      <div class="card" style="flex: 1;">
-                        <h3>Average Price by Release Year</h3>
+                        <h3>Average Price by Release Year (original prices, years with 50+ games)</h3>
                         <canvas id="pricingChart"></canvas>
                     </div>
                 </div>
@@ -53,25 +53,29 @@
                     </div>
             </section>
             <section id="predict-view" class="view hidden-view">
-                <h1>Success Score</h1>
-                <p>A rule-based score built from the ratings and prices of past games in the same genre.</p>
+                <h1>Rating Estimate</h1>
+                <p>Estimates a game's rating out of 10 from its genre, publisher, price and release month, with a range that should contain the real rating about 80% of the time.</p>
 
                 <div class="prediction-layout">
                     <div class="card form-panel">
-                        <label>Genre</label>
+                        <label>Genre group</label>
                         <select id="pred-genre">
-                            <option value="">Loading genres...</option>
+                            <option value="">Loading...</option>
                         </select>
 
-                            <label>Price (USD)</label>
-                            <input type="number" id="pred-price" value="29.99">
+                        <label>Publisher (optional)</label>
+                        <input type="text" id="pred-publisher" list="publisher-list" placeholder="e.g., Nintendo">
+                        <datalist id="publisher-list"></datalist>
 
-                            <label>Expected Release Date</label>
-                            <input type="date" id="pred-date" value="2026-10-15">
-                            <button id="predictBtn">Calculate Score</button>
+                        <label>Price (USD)</label>
+                        <input type="number" id="pred-price" value="29.99" min="0" step="0.01">
+
+                        <label>Expected Release Date</label>
+                        <input type="date" id="pred-date" value="2026-10-15">
+                        <button id="predictBtn">Estimate Rating</button>
                     </div>
                     <div class="card result-panel" id="prediction-result">
-                        <div class="empty-state">No prediction yet. Fill out the form.</div>
+                        <div class="empty-state">No estimate yet. Fill out the form.</div>
                     </div>
                 </div>
             </section>
@@ -80,7 +84,7 @@
                 <div class="metric-cards" id="trend-metrics">
                 </div>
                 <div class="card chart-container" style="margin-top: 20px;">
-                    <h3>Games Released per Year: Two Most Common Genres</h3>
+                    <h3>Games in the Dataset per Release Year: Two Most Common Genres</h3>
                     <canvas id="trendsChart"></canvas>
                 </div>
             </section>

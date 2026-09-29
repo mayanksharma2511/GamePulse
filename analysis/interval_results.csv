@@ -1,0 +1,2 @@
+train_games,calibration_games,test_games,half_width,coverage,coverage_known_publisher,known_publisher_games,coverage_other_publisher,other_publisher_games,test_mae
+338,206,375,1.421,0.813,0.827,133,0.806,242,0.937

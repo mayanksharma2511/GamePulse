@@ -18,9 +18,16 @@ def get_dashboard_stats():
     COL_DATE = 'Released Date'
     COL_RATING = 'Rating'
 
+    # Prices and ratings with more than two decimals were filled in with averages
+    # (see analysis/DATA_AUDIT.md), so averages below use original values only.
+    def is_filled_in(x):
+        return abs(round(x, 2) - x) > 1e-6
+    real_price = ~df[COL_PRICE].map(is_filled_in)
+    real_rating = ~df[COL_RATING].map(is_filled_in)
+
     # 1. Top Metrics
     total_games = len(df)
-    avg_rating = df[COL_RATING].mean()
+    avg_rating = df.loc[real_rating, COL_RATING].mean()
     top_genre = df[COL_GENRE].mode()[0]
 
     # 2. Genre Distribution (Top 6 Genres for Bar Chart)
@@ -32,9 +39,12 @@ def get_dashboard_stats():
     df['Year'] = pd.to_datetime(df[COL_DATE], errors='coerce').dt.year
     valid_years_df = df.dropna(subset=['Year']).copy()
     
-    yearly_prices = valid_years_df.groupby('Year')[COL_PRICE].mean().tail(6)
-    trend_labels = [str(int(year)) for year in yearly_prices.index.tolist()]
-    trend_data = [round(price, 2) for price in yearly_prices.values.tolist()]
+    priced = valid_years_df[real_price.loc[valid_years_df.index]]
+    yearly = priced.groupby('Year')[COL_PRICE].agg(['mean', 'count'])
+    yearly = yearly[yearly['count'] >= 50].tail(6)  # skip years with too few games to average
+    trend_labels = [f"{int(y)} (n={int(n)})" for y, n in zip(yearly.index, yearly['count'])]
+    trend_data = [round(v, 2) for v in yearly['mean'].tolist()]
+    trend_years = [str(int(y)) for y in yearly.index]
 
     # 4. REAL Genre Growth Over Time (Top 2 Genres)
     top_2_genres = genre_labels[:2] 
@@ -57,11 +67,7 @@ def get_dashboard_stats():
     if len(trend_data) >= 2 and trend_data[0] > 0:
         change = ((trend_data[-1] - trend_data[0]) / trend_data[0]) * 100
         sign = "+" if change > 0 else ""
-        price_change_str = f"{sign}{change:.1f}% ({trend_labels[0]}-{trend_labels[-1]})"
-
-    # Genres with enough games to be offered in the prediction form
-    genre_counts_all = df[COL_GENRE].value_counts()
-    genre_options = genre_counts_all[genre_counts_all >= 20].index.tolist()
+        price_change_str = f"{sign}{change:.1f}% ({trend_years[0]}-{trend_years[-1]})"
 
     return {
         "metrics": {
@@ -69,7 +75,8 @@ def get_dashboard_stats():
             "average_rating": f"{avg_rating:.1f}",
             "top_genre": str(top_genre),
             "avg_price_change": price_change_str,
-            "average_price": f"${df[COL_PRICE].mean():.2f}"
+            "average_price": f"${df.loc[real_price, COL_PRICE].mean():.2f}",
+            "games_with_original_price": int(real_price.sum())
         },
         "genre_distribution": {
             "labels": genre_labels,
@@ -79,7 +86,6 @@ def get_dashboard_stats():
             "labels": trend_labels,
             "data": trend_data
         },
-        "genre_options": genre_options,
         "chart_data": {
             "labels": chart_labels,
             "genre1_name": genre1,

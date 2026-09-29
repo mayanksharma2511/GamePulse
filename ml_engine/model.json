@@ -1,0 +1,1298 @@
+{
+ "description": "Ridge regression predicting a game's rating out of 10. Built by analysis/train_model.py.",
+ "trained_on": "708 games released 2017-2020 with original ratings",
+ "calibrated_on": "211 games released 2021-2023",
+ "coverage_target": 0.8,
+ "interval_half_width": 1.5633,
+ "intercept": 7.308814058913727,
+ "categorical": {
+  "genre_group": {
+   "Action": 0.13290705845434816,
+   "Action-adventure": -0.13989081904286277,
+   "Adventure & story": -0.059850059671236924,
+   "Fighting": 0.15517067230336037,
+   "Horror & survival": -0.3334707043033049,
+   "Music & party": 0.2256852051119413,
+   "Other": -0.33780608176294435,
+   "Platformer": 0.34420799371996813,
+   "Puzzle & card": 0.13871781764299965,
+   "Role-playing": 0.18048892499600805,
+   "Shooter": -0.113487605198733,
+   "Simulation & management": 0.08919259136952645,
+   "Sports & racing": -0.2907885911918508,
+   "Strategy & tactics": 0.008923597572767991
+  },
+  "release_month": {
+   "1": 0.004435932678735093,
+   "2": 0.06359715891425582,
+   "3": 0.1371794324873727,
+   "4": 0.13041807623640478,
+   "5": -0.09349241891273516,
+   "6": -0.08750346708313539,
+   "7": -0.07900604274180184,
+   "8": 0.22882932046280974,
+   "9": 0.033482605425845836,
+   "10": -0.01252661624665692,
+   "11": -0.18555296166732194,
+   "12": -0.13986101955376729
+  }
+ },
+ "categorical_training_average": {
+  "genre_group": 0.0657993798937901,
+  "release_month": -0.0064354727058196955
+ },
+ "numeric": {
+  "Price": {
+   "mean": 20.663121373384694,
+   "scale": 12.379906831553583,
+   "coef": 0.07849330544684399
+  },
+  "price_imputed": {
+   "mean": 0.0423728813559322,
+   "scale": 0.20143837837296122,
+   "coef": -0.08584122908607718
+  },
+  "publisher_history": {
+   "mean": 7.419557659190524,
+   "scale": 0.28506194685243863,
+   "coef": 0.4142598068460347
+  }
+ },
+ "overall_average_rating": 7.368177966101695,
+ "publishers": {
+  "10tons": {
+   "history": 7.1589,
+   "games": 3
+  },
+  "13AM Games": {
+   "history": 7.3935,
+   "games": 1
+  },
+  "2K Games": {
+   "history": 7.9991,
+   "games": 5
+  },
+  "2K Sports": {
+   "history": 7.0841,
+   "games": 5
+  },
+  "3909": {
+   "history": 7.6235,
+   "games": 1
+  },
+  "3D Realms": {
+   "history": 7.4051,
+   "games": 1
+  },
+  "505 Games": {
+   "history": 7.6512,
+   "games": 4
+  },
+  "8-4": {
+   "history": 7.8344,
+   "games": 2
+  },
+  "Abstraction Games": {
+   "history": 7.2785,
+   "games": 1
+  },
+  "Abylight": {
+   "history": 7.6518,
+   "games": 1
+  },
+  "Abylight Studios": {
+   "history": 7.4258,
+   "games": 2
+  },
+  "Activision": {
+   "history": 7.4687,
+   "games": 2
+  },
+  "Adriaan de Jongh": {
+   "history": 7.2518,
+   "games": 1
+  },
+  "Adult Swim Games": {
+   "history": 7.5226,
+   "games": 3
+  },
+  "Akupara Games": {
+   "history": 7.0785,
+   "games": 1
+  },
+  "All Yes Good": {
+   "history": 7.2518,
+   "games": 1
+  },
+  "All in! Games, ": {
+   "history": 7.3085,
+   "games": 1
+  },
+  "Amanita Design": {
+   "history": 7.4451,
+   "games": 1
+  },
+  "Analgesic Productions": {
+   "history": 7.3401,
+   "games": 1
+  },
+  "Angry Mob Games": {
+   "history": 7.1685,
+   "games": 1
+  },
+  "Annapurna Interactive": {
+   "history": 7.6908,
+   "games": 8
+  },
+  "Aquiris Game Studio": {
+   "history": 7.5335,
+   "games": 1
+  },
+  "Arc System Works": {
+   "history": 7.179,
+   "games": 4
+  },
+  "Asmodee": {
+   "history": 6.9773,
+   "games": 2
+  },
+  "Aspyr": {
+   "history": 7.1618,
+   "games": 1
+  },
+  "Asteroid Base": {
+   "history": 7.5501,
+   "games": 1
+  },
+  "Astronauts": {
+   "history": 7.2518,
+   "games": 1
+  },
+  "Asymmetric Publications": {
+   "history": 7.5485,
+   "games": 1
+  },
+  "Atari": {
+   "history": 7.0651,
+   "games": 1
+  },
+  "Atooi": {
+   "history": 7.4676,
+   "games": 3
+  },
+  "Attu Games": {
+   "history": 6.8618,
+   "games": 1
+  },
+  "BadLand Games": {
+   "history": 7.6151,
+   "games": 1
+  },
+  "Bandai Namco Entertainment": {
+   "history": 7.4101,
+   "games": 12
+  },
+  "BeautiFun Games": {
+   "history": 7.3401,
+   "games": 1
+  },
+  "Bethesda Softworks": {
+   "history": 7.4239,
+   "games": 3
+  },
+  "Bifrost Entertainment": {
+   "history": 7.4951,
+   "games": 1
+  },
+  "Big Ant Studios": {
+   "history": 7.2518,
+   "games": 1
+  },
+  "Bigben Interactive": {
+   "history": 7.0473,
+   "games": 2
+  },
+  "Bithell Games": {
+   "history": 7.4085,
+   "games": 1
+  },
+  "Bitmap Bureau": {
+   "history": 7.4701,
+   "games": 1
+  },
+  "Blizzard Entertainment": {
+   "history": 7.4185,
+   "games": 1
+  },
+  "Blue Isle Studios": {
+   "history": 7.5487,
+   "games": 2
+  },
+  "Bohemia Interactive": {
+   "history": 7.0568,
+   "games": 1
+  },
+  "Brace Yourself Games": {
+   "history": 7.5285,
+   "games": 1
+  },
+  "Broken Rules": {
+   "history": 7.4101,
+   "games": 1
+  },
+  "Capcom": {
+   "history": 7.3001,
+   "games": 10
+  },
+  "Cartoon Network Games": {
+   "history": 7.1818,
+   "games": 1
+  },
+  "Cellar Door Games": {
+   "history": 7.5085,
+   "games": 1
+  },
+  "Chilled Mouse": {
+   "history": 6.4801,
+   "games": 3
+  },
+  "Choice Provisions": {
+   "history": 7.3835,
+   "games": 1
+  },
+  "Chorus Worldwide": {
+   "history": 7.4068,
+   "games": 1
+  },
+  "Chucklefish": {
+   "history": 7.4716,
+   "games": 2
+  },
+  "Circle Entertainment": {
+   "history": 7.1414,
+   "games": 3
+  },
+  "Clever Endeavour Games": {
+   "history": 7.4135,
+   "games": 1
+  },
+  "Clickteam": {
+   "history": 5.5734,
+   "games": 4
+  },
+  "Coatsink": {
+   "history": 7.4316,
+   "games": 2
+  },
+  "ConcernedApe": {
+   "history": 7.6735,
+   "games": 1
+  },
+  "Crazy Viking Studios": {
+   "history": 7.4401,
+   "games": 1
+  },
+  "Crunching Koalas": {
+   "history": 7.2868,
+   "games": 4
+  },
+  "Crytek": {
+   "history": 7.2651,
+   "games": 1
+  },
+  "Curve Digital": {
+   "history": 7.0889,
+   "games": 3
+  },
+  "D-Pad Studio": {
+   "history": 7.5051,
+   "games": 1
+  },
+  "D3 Publisher": {
+   "history": 6.6951,
+   "games": 1
+  },
+  "Daedalic Entertainment": {
+   "history": 7.1361,
+   "games": 5
+  },
+  "Dan Fornace": {
+   "history": 7.2518,
+   "games": 1
+  },
+  "Daybreak Game Company": {
+   "history": 6.6951,
+   "games": 1
+  },
+  "Deck13": {
+   "history": 7.5468,
+   "games": 1
+  },
+  "Deep End Games": {
+   "history": 7.3118,
+   "games": 1
+  },
+  "Defiant Development": {
+   "history": 7.5285,
+   "games": 1
+  },
+  "Devolver Digital": {
+   "history": 7.8075,
+   "games": 19
+  },
+  "Digerati": {
+   "history": 7.4276,
+   "games": 3
+  },
+  "Digital Dreams Entertainment": {
+   "history": 7.2085,
+   "games": 1
+  },
+  "Digital Extremes": {
+   "history": 7.5718,
+   "games": 1
+  },
+  "Digital Leisure": {
+   "history": 7.3868,
+   "games": 1
+  },
+  "Dotemu": {
+   "history": 7.6171,
+   "games": 5
+  },
+  "Double Damage Games": {
+   "history": 7.4935,
+   "games": 1
+  },
+  "Double Eleven": {
+   "history": 7.3985,
+   "games": 1
+  },
+  "Double Fine Productions": {
+   "history": 7.3889,
+   "games": 3
+  },
+  "DrinkBox Studios": {
+   "history": 7.8173,
+   "games": 2
+  },
+  "Drool": {
+   "history": 7.5651,
+   "games": 1
+  },
+  "Dry Cactus": {
+   "history": 7.2901,
+   "games": 1
+  },
+  "Dufgames": {
+   "history": 7.2651,
+   "games": 1
+  },
+  "EA Originals": {
+   "history": 7.3851,
+   "games": 1
+  },
+  "EA Sports": {
+   "history": 7.3687,
+   "games": 2
+  },
+  "Elden Pixels": {
+   "history": 7.5616,
+   "games": 2
+  },
+  "Electronic Arts": {
+   "history": 7.493,
+   "games": 2
+  },
+  "Enhance Games": {
+   "history": 7.5735,
+   "games": 1
+  },
+  "FDG Entertainment": {
+   "history": 7.6268,
+   "games": 1
+  },
+  "Fellow Traveler": {
+   "history": 7.4618,
+   "games": 1
+  },
+  "Fellow Traveller": {
+   "history": 7.3989,
+   "games": 3
+  },
+  "Final Form Games": {
+   "history": 7.4368,
+   "games": 1
+  },
+  "Finji": {
+   "history": 7.5964,
+   "games": 3
+  },
+  "Flarb": {
+   "history": 7.4635,
+   "games": 1
+  },
+  "Flyhigh Works": {
+   "history": 7.7245,
+   "games": 4
+  },
+  "Focus Home Interactive": {
+   "history": 7.1858,
+   "games": 2
+  },
+  "Forever Entertainment": {
+   "history": 6.3687,
+   "games": 2
+  },
+  "Francis Cota": {
+   "history": 7.4451,
+   "games": 1
+  },
+  "Freebird Games": {
+   "history": 7.4851,
+   "games": 1
+  },
+  "Frozenbyte": {
+   "history": 7.3018,
+   "games": 1
+  },
+  "Fullbright": {
+   "history": 7.6401,
+   "games": 1
+  },
+  "Funcom": {
+   "history": 7.1068,
+   "games": 1
+  },
+  "Funselektor Labs": {
+   "history": 7.2701,
+   "games": 1
+  },
+  "GalaxyTrail": {
+   "history": 7.4601,
+   "games": 1
+  },
+  "Game Freak": {
+   "history": 7.3368,
+   "games": 1
+  },
+  "GameTrust": {
+   "history": 7.2018,
+   "games": 1
+  },
+  "Gemdrops": {
+   "history": 6.6951,
+   "games": 1
+  },
+  "Good Shepherd Entertainment": {
+   "history": 7.3785,
+   "games": 1
+  },
+  "Graffiti Games": {
+   "history": 7.2201,
+   "games": 2
+  },
+  "Greenheart Games": {
+   "history": 7.4818,
+   "games": 1
+  },
+  "GungHo Online Entertainment": {
+   "history": 7.2564,
+   "games": 3
+  },
+  "H2 Interactive": {
+   "history": 6.6951,
+   "games": 1
+  },
+  "HandyGames": {
+   "history": 7.2518,
+   "games": 1
+  },
+  "Headbang Club": {
+   "history": 7.3068,
+   "games": 1
+  },
+  "Headup Games": {
+   "history": 7.5216,
+   "games": 2
+  },
+  "Hello Games": {
+   "history": 7.5985,
+   "games": 1
+  },
+  "Hi-Rez Studios": {
+   "history": 6.9934,
+   "games": 4
+  },
+  "Hidden Path Entertainment": {
+   "history": 7.2518,
+   "games": 1
+  },
+  "High Horse Entertainment": {
+   "history": 7.2951,
+   "games": 1
+  },
+  "Hinterland Studio": {
+   "history": 7.4635,
+   "games": 1
+  },
+  "Humble Bundle": {
+   "history": 7.8542,
+   "games": 7
+  },
+  "Humble Games": {
+   "history": 7.3673,
+   "games": 2
+  },
+  "Humble Hearts": {
+   "history": 7.3951,
+   "games": 1
+  },
+  "HypeTrain Digital": {
+   "history": 7.2868,
+   "games": 1
+  },
+  "Idea Factory": {
+   "history": 7.2868,
+   "games": 1
+  },
+  "Image & Form": {
+   "history": 7.7358,
+   "games": 2
+  },
+  "Imgn Pro": {
+   "history": 7.2518,
+   "games": 1
+  },
+  "Inin Games": {
+   "history": 7.3001,
+   "games": 2
+  },
+  "Inin Games, Strictly Limited Games": {
+   "history": 7.2235,
+   "games": 1
+  },
+  "Innersloth": {
+   "history": 7.5035,
+   "games": 1
+  },
+  "Inti Creates": {
+   "history": 7.5889,
+   "games": 3
+  },
+  "Introversion Software": {
+   "history": 7.5468,
+   "games": 1
+  },
+  "Irregular Corporation": {
+   "history": 7.2735,
+   "games": 1
+  },
+  "JP": {
+   "history": 7.6229,
+   "games": 78
+  },
+  "Jackbox Games": {
+   "history": 7.4293,
+   "games": 8
+  },
+  "Jupiter Corporation": {
+   "history": 7.5091,
+   "games": 5
+  },
+  "Kairosoft": {
+   "history": 7.2518,
+   "games": 1
+  },
+  "Kalypso Media": {
+   "history": 7.2073,
+   "games": 2
+  },
+  "Kemco": {
+   "history": 7.2901,
+   "games": 1
+  },
+  "Kitfox Games": {
+   "history": 7.3618,
+   "games": 1
+  },
+  "Klabater": {
+   "history": 7.2451,
+   "games": 1
+  },
+  "Klei Entertainment": {
+   "history": 7.2518,
+   "games": 1
+  },
+  "Koch Media": {
+   "history": 7.3001,
+   "games": 2
+  },
+  "Koei Tecmo": {
+   "history": 7.243,
+   "games": 2
+  },
+  "Konami": {
+   "history": 7.0614,
+   "games": 3
+  },
+  "Kongregate": {
+   "history": 6.9285,
+   "games": 1
+  },
+  "League of Geeks": {
+   "history": 7.5085,
+   "games": 1
+  },
+  "Limited Run Games": {
+   "history": 7.4816,
+   "games": 2
+  },
+  "Lucasfilm Games": {
+   "history": 7.3568,
+   "games": 1
+  },
+  "Magic Design Studios": {
+   "history": 7.4968,
+   "games": 1
+  },
+  "Marvelous": {
+   "history": 7.5387,
+   "games": 2
+  },
+  "Matt Makes Games": {
+   "history": 7.8958,
+   "games": 2
+  },
+  "Merge Games": {
+   "history": 7.1935,
+   "games": 1
+  },
+  "Messhof": {
+   "history": 7.3818,
+   "games": 1
+  },
+  "Metanet Software": {
+   "history": 7.5568,
+   "games": 1
+  },
+  "Microids": {
+   "history": 6.7076,
+   "games": 7
+  },
+  "Micro\u00efds": {
+   "history": 7.2768,
+   "games": 1
+  },
+  "Mike Bithell Games": {
+   "history": 7.5568,
+   "games": 1
+  },
+  "Milestone": {
+   "history": 6.9735,
+   "games": 1
+  },
+  "Milkstone Studios": {
+   "history": 6.6951,
+   "games": 1
+  },
+  "MixedBag": {
+   "history": 6.8968,
+   "games": 1
+  },
+  "Modus Games": {
+   "history": 7.1935,
+   "games": 1
+  },
+  "MoeNovel": {
+   "history": 7.4318,
+   "games": 1
+  },
+  "Mokuzai Studio": {
+   "history": 7.3068,
+   "games": 1
+  },
+  "Mooneye Studios": {
+   "history": 7.2785,
+   "games": 1
+  },
+  "Motion Twin": {
+   "history": 7.7018,
+   "games": 1
+  },
+  "My.com": {
+   "history": 6.6951,
+   "games": 1
+  },
+  "NIS America": {
+   "history": 7.4968,
+   "games": 1
+  },
+  "Natsume": {
+   "history": 7.4735,
+   "games": 1
+  },
+  "Neko Works": {
+   "history": 6.3157,
+   "games": 4
+  },
+  "Next Gen Reality": {
+   "history": 7.2951,
+   "games": 1
+  },
+  "Nicalis": {
+   "history": 7.561,
+   "games": 6
+  },
+  "Night School Studio": {
+   "history": 7.5201,
+   "games": 2
+  },
+  "Nightdive Studios": {
+   "history": 7.2687,
+   "games": 2
+  },
+  "Nihon Falcom": {
+   "history": 7.5401,
+   "games": 1
+  },
+  "Ninagamers": {
+   "history": 7.2718,
+   "games": 1
+  },
+  "Ninja Kiwi": {
+   "history": 7.0285,
+   "games": 1
+  },
+  "Nintendo": {
+   "history": 7.9469,
+   "games": 33
+  },
+  "Nippon Ichi Software": {
+   "history": 7.7245,
+   "games": 4
+  },
+  "Nitrome": {
+   "history": 7.4385,
+   "games": 1
+  },
+  "Nnooo": {
+   "history": 7.1951,
+   "games": 1
+  },
+  "No More Robots": {
+   "history": 7.4376,
+   "games": 3
+  },
+  "Noxy Games": {
+   "history": 7.3901,
+   "games": 1
+  },
+  "Nyamakop": {
+   "history": 7.4635,
+   "games": 1
+  },
+  "Over the Moon": {
+   "history": 7.3318,
+   "games": 1
+  },
+  "PQube": {
+   "history": 7.3358,
+   "games": 2
+  },
+  "Panic": {
+   "history": 7.7573,
+   "games": 2
+  },
+  "Pasta Games": {
+   "history": 7.4351,
+   "games": 1
+  },
+  "Pentadimensional Games": {
+   "history": 7.3068,
+   "games": 1
+  },
+  "Perfect World Entertainment": {
+   "history": 7.1951,
+   "games": 1
+  },
+  "Petit Depotto": {
+   "history": 7.5668,
+   "games": 1
+  },
+  "Phoenix Labs": {
+   "history": 7.1268,
+   "games": 1
+  },
+  "Phoenixx": {
+   "history": 7.4535,
+   "games": 1
+  },
+  "Pillow Castle Games": {
+   "history": 7.4635,
+   "games": 1
+  },
+  "Pixel Maniacs": {
+   "history": 7.3068,
+   "games": 1
+  },
+  "PlatinumGames": {
+   "history": 7.4735,
+   "games": 1
+  },
+  "PlayEveryWare": {
+   "history": 7.4385,
+   "games": 1
+  },
+  "Playdead": {
+   "history": 7.6773,
+   "games": 2
+  },
+  "Playdigious": {
+   "history": 7.3735,
+   "games": 1
+  },
+  "Playful Studios": {
+   "history": 7.4801,
+   "games": 1
+  },
+  "Playism": {
+   "history": 7.5945,
+   "games": 4
+  },
+  "Plug In Digital": {
+   "history": 6.5301,
+   "games": 3
+  },
+  "Powerhoof": {
+   "history": 7.4968,
+   "games": 1
+  },
+  "Private Division": {
+   "history": 7.3301,
+   "games": 1
+  },
+  "Psyonix": {
+   "history": 7.5868,
+   "games": 1
+  },
+  "Q-Games": {
+   "history": 7.4318,
+   "games": 1
+  },
+  "QuByte Interactive": {
+   "history": 7.2518,
+   "games": 1
+  },
+  "QubicGames": {
+   "history": 7.1572,
+   "games": 9
+  },
+  "Radial Games": {
+   "history": 7.0985,
+   "games": 1
+  },
+  "Radical Games": {
+   "history": 7.5018,
+   "games": 1
+  },
+  "Rainy Frog": {
+   "history": 7.5285,
+   "games": 1
+  },
+  "Ratalaika Games": {
+   "history": 7.0114,
+   "games": 3
+  },
+  "Raw Fury": {
+   "history": 6.7081,
+   "games": 5
+  },
+  "Rebellion Developments": {
+   "history": 7.3701,
+   "games": 4
+  },
+  "Red Barrels": {
+   "history": 7.4687,
+   "games": 2
+  },
+  "Red Candle Games": {
+   "history": 7.5068,
+   "games": 1
+  },
+  "Red Hook Studios": {
+   "history": 7.5435,
+   "games": 1
+  },
+  "Reply Forge": {
+   "history": 7.4385,
+   "games": 1
+  },
+  "Ripstone": {
+   "history": 7.4668,
+   "games": 1
+  },
+  "Ripstone Games": {
+   "history": 7.2144,
+   "games": 2
+  },
+  "Rising Star Games": {
+   "history": 7.1876,
+   "games": 3
+  },
+  "Rockstar Games": {
+   "history": 7.4368,
+   "games": 1
+  },
+  "Rooster Teeth Games": {
+   "history": 7.1401,
+   "games": 1
+  },
+  "Runic Games": {
+   "history": 7.4668,
+   "games": 1
+  },
+  "SFB Games": {
+   "history": 7.5851,
+   "games": 1
+  },
+  "SNK": {
+   "history": 7.3634,
+   "games": 4
+  },
+  "Saber Interactive": {
+   "history": 7.2435,
+   "games": 1
+  },
+  "Samsung Electronics": {
+   "history": 7.2518,
+   "games": 1
+  },
+  "Screenwave Media": {
+   "history": 7.3785,
+   "games": 1
+  },
+  "Seaven Studio": {
+   "history": 7.3818,
+   "games": 1
+  },
+  "Secret Exit": {
+   "history": 7.2518,
+   "games": 1
+  },
+  "Sega": {
+   "history": 7.6467,
+   "games": 13
+  },
+  "Serenity Forge": {
+   "history": 7.1401,
+   "games": 1
+  },
+  "Shin'en Multimedia": {
+   "history": 7.4101,
+   "games": 2
+  },
+  "Shiro Games": {
+   "history": 7.523,
+   "games": 2
+  },
+  "Sidebar Games": {
+   "history": 7.4968,
+   "games": 1
+  },
+  "Sirlin Games": {
+   "history": 7.3618,
+   "games": 1
+  },
+  "Ska Studios": {
+   "history": 7.4885,
+   "games": 1
+  },
+  "Snowman": {
+   "history": 7.3901,
+   "games": 1
+  },
+  "Soedesco": {
+   "history": 6.8014,
+   "games": 3
+  },
+  "Sonka": {
+   "history": 7.2468,
+   "games": 1
+  },
+  "Spike Chunsoft": {
+   "history": 7.4751,
+   "games": 1
+  },
+  "Spooky Doorway": {
+   "history": 7.4368,
+   "games": 1
+  },
+  "Squanch Games": {
+   "history": 7.2518,
+   "games": 1
+  },
+  "Square Enix": {
+   "history": 7.5224,
+   "games": 12
+  },
+  "Starbreeze Studios": {
+   "history": 7.1744,
+   "games": 2
+  },
+  "Steel Crate Games": {
+   "history": 7.5235,
+   "games": 1
+  },
+  "StudioMDHR": {
+   "history": 7.6001,
+   "games": 1
+  },
+  "Subset Games": {
+   "history": 7.5985,
+   "games": 1
+  },
+  "Success": {
+   "history": 6.2144,
+   "games": 2
+  },
+  "Super Rare Games": {
+   "history": 7.3935,
+   "games": 1
+  },
+  "Supergiant Games": {
+   "history": 8.0189,
+   "games": 3
+  },
+  "Superhot Team": {
+   "history": 7.5751,
+   "games": 1
+  },
+  "System 3": {
+   "history": 6.6916,
+   "games": 2
+  },
+  "THQ Nordic": {
+   "history": 7.0507,
+   "games": 10
+  },
+  "Taito": {
+   "history": 7.4344,
+   "games": 2
+  },
+  "Take-Two Interactive": {
+   "history": 7.0685,
+   "games": 1
+  },
+  "Tate Interactive": {
+   "history": 7.2485,
+   "games": 1
+  },
+  "Team Cherry": {
+   "history": 7.7018,
+   "games": 1
+  },
+  "Team17": {
+   "history": 7.6451,
+   "games": 7
+  },
+  "Tencent": {
+   "history": 7.4318,
+   "games": 1
+  },
+  "Terrible Toybox": {
+   "history": 7.4535,
+   "games": 1
+  },
+  "Terry Cavanagh": {
+   "history": 7.6485,
+   "games": 1
+  },
+  "The Arcade Crew": {
+   "history": 7.3801,
+   "games": 2
+  },
+  "The Game Bakers": {
+   "history": 7.3901,
+   "games": 1
+  },
+  "The Irregular Corporation": {
+   "history": 7.4501,
+   "games": 2
+  },
+  "The Quantum Astrophysicists Guild": {
+   "history": 7.3435,
+   "games": 1
+  },
+  "The Voxel Agents": {
+   "history": 7.5618,
+   "games": 1
+  },
+  "Thunder Lotus Games": {
+   "history": 7.6151,
+   "games": 1
+  },
+  "Tic Toc Games": {
+   "history": 7.3701,
+   "games": 1
+  },
+  "TinyBuild": {
+   "history": 7.1143,
+   "games": 9
+  },
+  "Toge Productions": {
+   "history": 7.4451,
+   "games": 1
+  },
+  "Tomorrow Corporation": {
+   "history": 7.3779,
+   "games": 4
+  },
+  "Tozai Games": {
+   "history": 7.4285,
+   "games": 1
+  },
+  "Tri-Heart Interactive": {
+   "history": 7.1785,
+   "games": 1
+  },
+  "Tribute Games": {
+   "history": 7.5973,
+   "games": 2
+  },
+  "Two Tribes": {
+   "history": 7.4435,
+   "games": 1
+  },
+  "Two Tribes Publishing": {
+   "history": 7.4318,
+   "games": 1
+  },
+  "Ubisoft": {
+   "history": 7.2547,
+   "games": 8
+  },
+  "Ukiyo Publishing": {
+   "history": 7.4551,
+   "games": 1
+  },
+  "Unknown": {
+   "history": 6.9401,
+   "games": 1
+  },
+  "Unties": {
+   "history": 7.3368,
+   "games": 1
+  },
+  "Untold Tales": {
+   "history": 7.1735,
+   "games": 1
+  },
+  "Uppercut Fames": {
+   "history": 7.4135,
+   "games": 1
+  },
+  "Vblank Entertainment": {
+   "history": 7.5758,
+   "games": 2
+  },
+  "Vector Unit": {
+   "history": 7.2035,
+   "games": 1
+  },
+  "Versus Evil": {
+   "history": 7.7651,
+   "games": 5
+  },
+  "Vlambeer": {
+   "history": 7.4658,
+   "games": 2
+  },
+  "WB Games": {
+   "history": 7.4318,
+   "games": 1
+  },
+  "Wales Interactive": {
+   "history": 6.8476,
+   "games": 3
+  },
+  "Wargaming": {
+   "history": 7.2235,
+   "games": 1
+  },
+  "Warner Bros. Interactive Entertainment": {
+   "history": 7.3029,
+   "games": 9
+  },
+  "WayForward": {
+   "history": 7.6526,
+   "games": 3
+  },
+  "WeirdBeard": {
+   "history": 7.4635,
+   "games": 1
+  },
+  "William Chyr Studio": {
+   "history": 7.4151,
+   "games": 1
+  },
+  "Wired Productions": {
+   "history": 7.2273,
+   "games": 2
+  },
+  "Witch Beam": {
+   "history": 7.5018,
+   "games": 1
+  },
+  "X.D. Network": {
+   "history": 7.3116,
+   "games": 2
+  },
+  "Xbox Game Studios": {
+   "history": 7.8201,
+   "games": 2
+  },
+  "Zachtronics": {
+   "history": 6.6951,
+   "games": 1
+  },
+  "Zen Studios": {
+   "history": 7.2416,
+   "games": 2
+  },
+  "Zerodiv": {
+   "history": 7.4339,
+   "games": 3
+  },
+  "Zillion Whales": {
+   "history": 7.3401,
+   "games": 1
+  },
+  "aeiowu": {
+   "history": 7.4485,
+   "games": 1
+  },
+  "indienova": {
+   "history": 7.3185,
+   "games": 1
+  }
+ },
+ "genre_group_games": {
+  "Platformer": 101,
+  "Action": 95,
+  "Role-playing": 90,
+  "Adventure & story": 80,
+  "Puzzle & card": 61,
+  "Shooter": 54,
+  "Action-adventure": 46,
+  "Sports & racing": 41,
+  "Music & party": 33,
+  "Strategy & tactics": 32,
+  "Simulation & management": 29,
+  "Horror & survival": 25,
+  "Fighting": 18,
+  "Other": 3
+ },
+ "tested_coverage": 0.813,
+ "tested_on": "375 games released 2020-2023 (method check)"
+}
