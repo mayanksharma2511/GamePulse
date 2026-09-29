@@ -12,81 +12,92 @@
         <nav class="sidebar">
             <div class="logo-area">
                 <h2>GamePulse</h2>
-                <p>Game market analytics</p>
+                <p>Pre-launch analytics for Steam games</p>
             </div>
             <ul class="nav-links">
-                <li data-target="predict-view">Rating Estimate</li>
-                <li data-target="trends-view">Market Trends</li>
-                <li class="active" data-target="dashboard-view">Dashboard</li>
-                <li data-target="similarity-view">Similarity Analysis</li>
+                <li class="active" data-target="planner-view">Launch Planner</li>
+                <li data-target="market-view">Market Overview</li>
+                <li data-target="method-view">How It Works</li>
             </ul>
+            <p class="sidebar-note" id="data-note"></p>
         </nav>
 
         <main class="main-content">
-           <section id="dashboard-view" class="view active-view">
-            <h1>Dashboard</h1>
-            <p>Overview of market analytics and game insights.</p>
-             <div class="metric-cards" id="dash-metrics">
-                 </div>
-                  <div class="prediction-layout" style="margin-top: 30px;">
-                    <div class="card" style="flex: 1;">
-                        <h3>Genre Distribution</h3>
-                        <canvas id="genreChart"></canvas>
-                     </div>
-                     <div class="card" style="flex: 1;">
-                        <h3>Average Price by Release Year (original prices, years with 50+ games)</h3>
-                        <canvas id="pricingChart"></canvas>
+            <!-- LAUNCH PLANNER -->
+            <section id="planner-view" class="view active-view">
+                <h1>Launch Planner</h1>
+                <p class="subtitle">Describe a game before release to see comparable Steam games, the chance of Very Positive reviews, and how many players it may reach.</p>
+
+                <div class="planner-layout">
+                    <form class="card form-panel" id="planner-form">
+                        <label for="desc">Short description (like a Steam store blurb)</label>
+                        <textarea id="desc" rows="4" placeholder="e.g., A cozy farming game where you restore an old farm, grow crops and befriend villagers."></textarea>
+
+                        <label>Genres</label>
+                        <div class="chip-group" id="genre-options"></div>
+
+                        <label>Features</label>
+                        <div class="chip-group" id="category-options"></div>
+
+                        <div class="row">
+                            <div>
+                                <label for="price">Price (USD, 0 = free)</label>
+                                <input type="number" id="price" value="14.99" min="0" step="0.01">
+                            </div>
+                            <div>
+                                <label for="month">Release month</label>
+                                <select id="month"></select>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div>
+                                <label for="developer">Developer (optional)</label>
+                                <input type="text" id="developer" placeholder="e.g., ConcernedApe">
+                            </div>
+                            <div>
+                                <label for="publisher">Publisher (optional)</label>
+                                <input type="text" id="publisher" placeholder="Leave blank if self-published">
+                            </div>
+                        </div>
+
+                        <div class="checks">
+                            <label class="inline"><input type="checkbox" id="mac"> Mac version</label>
+                            <label class="inline"><input type="checkbox" id="linux"> Linux version</label>
+                            <label class="inline"><input type="checkbox" id="age"> Age restricted</label>
+                        </div>
+
+                        <button type="submit" id="estimateBtn">Estimate</button>
+                    </form>
+
+                    <div class="results" id="results">
+                        <div class="card empty-state">Fill in the form to see estimates.</div>
                     </div>
+                </div>
+
+                <div class="card" id="comparables-card" hidden>
+                    <h3>Most comparable Steam games</h3>
+                    <p class="muted">Matched by store description. Figures are as of May 2019.</p>
+                    <table class="table" id="comparables-table"></table>
                 </div>
             </section>
 
-            <section id="similarity-view" class="view hidden-view">
-                <h1>Similarity Analysis</h1>
-                <p>Enter a game from the dataset to see the highest-rated games in the same genre.</p>
-                
-                <div class="search-box">
-                    <input type="text" id="gameSearchInput" placeholder="e.g., Hades">
-                    <button id="searchBtn">Analyze</button>
-                </div>
-
-                <div id="results-container" class="results-grid">
-                    </div>
-            </section>
-            <section id="predict-view" class="view hidden-view">
-                <h1>Rating Estimate</h1>
-                <p>Estimates a game's rating out of 10 from its genre, publisher, price and release month, with a range that should contain the real rating about 80% of the time.</p>
-
-                <div class="prediction-layout">
-                    <div class="card form-panel">
-                        <label>Genre group</label>
-                        <select id="pred-genre">
-                            <option value="">Loading...</option>
-                        </select>
-
-                        <label>Publisher (optional)</label>
-                        <input type="text" id="pred-publisher" list="publisher-list" placeholder="e.g., Nintendo">
-                        <datalist id="publisher-list"></datalist>
-
-                        <label>Price (USD)</label>
-                        <input type="number" id="pred-price" value="29.99" min="0" step="0.01">
-
-                        <label>Expected Release Date</label>
-                        <input type="date" id="pred-date" value="2026-10-15">
-                        <button id="predictBtn">Estimate Rating</button>
-                    </div>
-                    <div class="card result-panel" id="prediction-result">
-                        <div class="empty-state">No estimate yet. Fill out the form.</div>
-                    </div>
+            <!-- MARKET OVERVIEW -->
+            <section id="market-view" class="view hidden-view">
+                <h1>Market Overview</h1>
+                <p class="subtitle">Steam games released 2014–2018. "Very Positive" means at least 80% positive reviews, among games with 50+ reviews.</p>
+                <div class="metric-cards" id="market-metrics"></div>
+                <div class="chart-grid">
+                    <div class="card"><h3>Games released per year</h3><div class="chart-box"><canvas id="yearChart"></canvas></div></div>
+                    <div class="card"><h3>Very Positive rate by price</h3><div class="chart-box"><canvas id="priceChart"></canvas></div></div>
+                    <div class="card wide"><h3>Very Positive rate by genre (genres with 200+ reviewed games)</h3><div class="chart-box tall"><canvas id="genreChart"></canvas></div></div>
                 </div>
             </section>
-            <section id="trends-view" class="view hidden-view">
-                <h1>Market Trends</h1>
-                <div class="metric-cards" id="trend-metrics">
-                </div>
-                <div class="card chart-container" style="margin-top: 20px;">
-                    <h3>Games in the Dataset per Release Year: Two Most Common Genres</h3>
-                    <canvas id="trendsChart"></canvas>
-                </div>
+
+            <!-- HOW IT WORKS -->
+            <section id="method-view" class="view hidden-view">
+                <h1>How It Works</h1>
+                <div class="card prose" id="method-content"><p>Loading...</p></div>
             </section>
         </main>
     </div>

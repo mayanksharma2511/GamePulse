@@ -26,10 +26,10 @@ Gradient boosting on store info and track record, with an 80% range from split c
 |---|---|
 | Range | estimate ± 30.1 percentile points |
 | Games whose real reach fell inside the range | **77.3%** (target 80%) |
+| Mean absolute error | 20.01 |
 
 Coverage is a little below the target: the 2018 games were harder to place than the 2017 games used to set
 the range, which is the risk whenever the market changes between calibration and use.
-| Mean absolute error | 20.01 |
 
 ## Comparable games
 

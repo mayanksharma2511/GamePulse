@@ -1,257 +1,233 @@
-document.addEventListener('DOMContentLoaded', () => {
-    // --- LOAD DASHBOARD DATA ---
-    async function loadDashboard() {
-        try {
-            const response = await fetch('http://localhost:3000/api/dashboard-stats');
-            const data = await response.json();
-            if (data.error) {
-                console.error("Backend Error:", data.error);
-                document.getElementById('dash-metrics').innerHTML = `<p style="color:red; padding: 20px;">Server Error: ${data.error}</p>`;
-                return; // Stop the function here so the rest of the page doesn't break
-            }
+const API = 'http://localhost:3000/api';
+let OPTIONS = null;
 
-            // Populate top cards
-            document.getElementById('dash-metrics').innerHTML = `
-                <div class="card">Games in Dataset<br><strong style="color: #8b5cf6">${data.metrics.total_games}</strong></div>
-                <div class="card">Average Rating<br><strong style="color: #10b981">${data.metrics.average_rating}/10</strong></div>
-                <div class="card">Most Common Genre<br><strong>${data.metrics.top_genre}</strong></div>
-                <div class="card">Average Price<br><strong>${data.metrics.average_price}</strong></div>
-            `;
+const escapeHtml = (s) => String(s).replace(/[&<>"']/g, c => (
+    { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const pct = (x, digits = 1) => `${(x * 100).toFixed(digits)}%`;
+const fmtInt = (n) => Number(n).toLocaleString('en-US');
 
-            // Draw Genre Bar Chart
-            new Chart(document.getElementById('genreChart').getContext('2d'), {
-                type: 'bar',
-                data: {
-                    labels: data.genre_distribution.labels,
-                    datasets: [{
-                        label: 'Total Games',
-                        data: data.genre_distribution.data,
-                        backgroundColor: '#8b5cf6',
-                        borderRadius: 4
-                    }]
-                },
-                options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { grid: { color: '#334155' }, ticks: { color: '#94a3b8' } }, x: { grid: { display: false }, ticks: { color: '#94a3b8' } } } }
-            });
+async function getJSON(url, options) {
+    const response = await fetch(url, options);
+    const data = await response.json();
+    if (data.error) throw new Error(data.error);
+    return data;
+}
 
-            // Draw Pricing Line Chart
-            new Chart(document.getElementById('pricingChart').getContext('2d'), {
-                type: 'line',
-                data: {
-                    labels: data.pricing_trends.labels,
-                    datasets: [{
-                        label: 'Average Price (USD)',
-                        data: data.pricing_trends.data,
-                        borderColor: '#10b981',
-                        backgroundColor: 'rgba(16, 185, 129, 0.1)',
-                        fill: true,
-                        tension: 0.4
-                    }]
-                },
-                options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { grid: { color: '#334155' }, ticks: { color: '#94a3b8' } }, x: { grid: { display: false }, ticks: { color: '#94a3b8' } } } }
-            });
-
-        } catch (error) {
-            console.error('Dashboard load failed:', error);
-        }
-    }
-    
-    loadDashboard(); // Fire function on page load
-
-    // --- PREDICTION FORM OPTIONS (from the trained model) ---
-    async function loadModelInfo() {
-        try {
-            const response = await fetch('http://localhost:3000/api/model-info');
-            const info = await response.json();
-            if (info.error) throw new Error(info.error);
-            document.getElementById('pred-genre').innerHTML = info.genre_groups
-                .map(g => `<option value="${g}">${g}</option>`).join('');
-            document.getElementById('publisher-list').innerHTML = info.publishers
-                .map(p => `<option value="${p}"></option>`).join('');
-        } catch (error) {
-            console.error('Model info load failed:', error);
-        }
-    }
-    loadModelInfo();
-    
-    // --- NAVIGATION LOGIC ---
-    const navItems = document.querySelectorAll('.nav-links li');
-    const views = document.querySelectorAll('.view');
-
-    navItems.forEach(item => {
-        item.addEventListener('click', () => {
-            // Remove active states
-            navItems.forEach(nav => nav.classList.remove('active'));
-            views.forEach(view => {
-                view.classList.remove('active-view');
-                view.classList.add('hidden-view');
-            });
-
-            // Set new active state
-            item.classList.add('active');
-            const targetId = item.getAttribute('data-target');
-            const targetView = document.getElementById(targetId);
-            targetView.classList.remove('hidden-view');
-            targetView.classList.add('active-view');
-        });
+// ---------- Navigation ----------
+const views = document.querySelectorAll('.view');
+document.querySelectorAll('.nav-links li').forEach(item => {
+    item.addEventListener('click', () => {
+        document.querySelectorAll('.nav-links li').forEach(n => n.classList.remove('active'));
+        views.forEach(v => { v.classList.remove('active-view'); v.classList.add('hidden-view'); });
+        item.classList.add('active');
+        const target = document.getElementById(item.dataset.target);
+        target.classList.remove('hidden-view');
+        target.classList.add('active-view');
+        if (item.dataset.target === 'market-view') loadMarket();
     });
+});
 
-    // --- SIMILARITY SEARCH LOGIC ---
-    const searchBtn = document.getElementById('searchBtn');
-    const searchInput = document.getElementById('gameSearchInput');
-    const resultsContainer = document.getElementById('results-container');
+// ---------- Form options ----------
+function chips(containerId, values, preselected) {
+    const box = document.getElementById(containerId);
+    box.innerHTML = values.map(v =>
+        `<span class="chip${preselected.includes(v) ? ' selected' : ''}" data-value="${escapeHtml(v)}">${escapeHtml(v)}</span>`).join('');
+    box.querySelectorAll('.chip').forEach(c => c.addEventListener('click', () => c.classList.toggle('selected')));
+}
+const selected = (containerId) =>
+    [...document.querySelectorAll(`#${containerId} .chip.selected`)].map(c => c.dataset.value);
 
-    searchBtn.addEventListener('click', async () => {
-        const gameName = searchInput.value.trim();
-        if (!gameName) return alert('Please enter a game name');
-
-        resultsContainer.innerHTML = '<p>Analyzing market data...</p>';
-
-        try {
-            // Fetch data from your Node.js backend
-            const response = await fetch('http://localhost:3000/api/recommend', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ gameName })
-            });
-
-            const data = await response.json();
-
-            if (data.error) {
-                resultsContainer.innerHTML = `<p style="color: red;">Error: ${data.error}</p>`;
-                return;
-            }
-
-            // Render the cards dynamically
-            resultsContainer.innerHTML = '';
-            data.forEach(game => {
-                const card = document.createElement('div');
-                card.className = 'result-card';
-                // Generate HTML for the NLP tags
-                const tagsHtml = (game.tags || []).map(tag => 
-                    `<span style="background: rgba(139, 92, 246, 0.15); color: #a78bfa; padding: 4px 10px; border-radius: 12px; font-size: 0.75rem; margin-right: 6px; display: inline-block; margin-top: 10px; border: 1px solid rgba(139, 92, 246, 0.3);">${tag}</span>`
-                ).join('');
-
-                card.innerHTML = `
-                    <h3>${game.title}</h3>
-                    <p style="color: #94a3b8; margin-top: 10px; font-size: 0.9rem;">🏢 ${game.publisher}</p>
-                    <p style="color: #94a3b8; margin-top: 5px;">🎮 ${game.genre} &nbsp;|&nbsp; ⭐ ${game.rating}/10</p>
-                    <p style="color: #10b981; margin-top: 5px; font-weight: bold;">💰 ${game.price}</p>
-                    <div>${tagsHtml}</div>
-                `;
-                resultsContainer.appendChild(card);
-            });
-
-        } catch (error) {
-            console.error('Fetch error:', error);
-            resultsContainer.innerHTML = '<p style="color: red;">Failed to connect to the server.</p>';
-        }
-    });
-    // --- RATING ESTIMATE LOGIC ---
-    const predictBtn = document.getElementById('predictBtn');
-    const resultPanel = document.getElementById('prediction-result');
-
-    if (predictBtn) {
-        predictBtn.addEventListener('click', async () => {
-            const genreGroup = document.getElementById('pred-genre').value;
-            const publisher = document.getElementById('pred-publisher').value;
-            const price = document.getElementById('pred-price').value;
-            const releaseDate = document.getElementById('pred-date').value;
-
-            resultPanel.innerHTML = '<p>Calculating...</p>';
-
-            try {
-                const response = await fetch('http://localhost:3000/api/predict', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ genreGroup, publisher, price, releaseDate })
-                });
-                const data = await response.json();
-                if (data.error) throw new Error(data.error);
-
-                const factorRows = data.factors.map(f => `
-                    <tr>
-                        <td style="text-align: left; padding: 4px 8px;">${f.factor}</td>
-                        <td style="text-align: right; padding: 4px 8px; color: ${f.effect >= 0 ? '#10b981' : '#f87171'}">
-                            ${f.effect >= 0 ? '+' : ''}${f.effect.toFixed(2)}
-                        </td>
-                    </tr>`).join('');
-
-                resultPanel.innerHTML = `
-                    <h2 style="color: #94a3b8">Estimated Rating</h2>
-                    <div class="success-score">${data.estimate.toFixed(1)}<span style="font-size: 1.5rem; color: #94a3b8">/10</span></div>
-                    <p>${Math.round(data.coverage * 100)}% range: <strong>${data.range_low.toFixed(1)} – ${data.range_high.toFixed(1)}</strong></p>
-                    <table style="margin-top: 15px; color: #cbd5e1; font-size: 0.9rem; border-collapse: collapse;">
-                        <tr><td style="text-align: left; padding: 4px 8px; color: #94a3b8">Average game</td>
-                            <td style="text-align: right; padding: 4px 8px; color: #94a3b8">${data.average_game.toFixed(2)}</td></tr>
-                        ${factorRows}
-                    </table>
-                    <p style="margin-top: 15px; color: #64748b; font-size: 0.85rem">
-                        Model trained on ${data.model}. When the same method was tested on ${data.tested_on}, the range
-                        contained the real rating ${(data.tested_coverage * 100).toFixed(1)}% of the time, and the estimate was only
-                        modestly more accurate than always guessing the average.
-                        See analysis/EVALUATION.md and analysis/INTERVALS.md.
-                    </p>
-                `;
-            } catch (err) {
-                resultPanel.innerHTML = `<p style="color: red;">Error: ${err.message}</p>`;
-            }
-        });
+async function loadOptions() {
+    try {
+        OPTIONS = await getJSON(`${API}/options`);
+        chips('genre-options', OPTIONS.genres, ['Indie', 'Simulation']);
+        chips('category-options', OPTIONS.categories, ['Single-player', 'Steam Achievements']);
+        document.getElementById('month').innerHTML = OPTIONS.months
+            .map((m, i) => `<option value="${i + 1}"${i === 9 ? ' selected' : ''}>${m}</option>`).join('');
+        renderMethod();
+    } catch (err) {
+        document.getElementById('results').innerHTML =
+            `<div class="card error">Could not reach the API: ${escapeHtml(err.message)}. Is the server running?</div>`;
     }
+}
 
-    // --- MARKET TRENDS LOGIC (CHART.JS) ---
-    // We trigger this when they click the "Market Trends" tab
-    const trendsTab = document.querySelector('[data-target="trends-view"]');
-    let chartLoaded = false;
+// ---------- Estimate ----------
+function factorRows(factors) {
+    const maxAbs = Math.max(...factors.map(f => Math.abs(f.effect)), 0.01);
+    return factors.map(f => {
+        const width = (Math.abs(f.effect) / maxAbs) * 50;
+        return `<div class="factor">
+            <span>${escapeHtml(f.factor)}</span>
+            <div class="bar-track"><div class="bar ${f.effect >= 0 ? 'up' : 'down'}" style="width:${width}%"></div></div>
+        </div>`;
+    }).join('');
+}
 
-    if(trendsTab) {
-        trendsTab.addEventListener('click', async () => {
-            if(chartLoaded) return; // Don't reload if already loaded
-            
-            try {
-                const response = await fetch('http://localhost:3000/api/dashboard-stats');
-                const data = await response.json();
+function reviewsText(n, isTop) {
+    return isTop ? `${fmtInt(n)}+` : fmtInt(n);
+}
 
-                // 1. Populate Metric Cards
-                document.getElementById('trend-metrics').innerHTML = `
-                    <div class="card">Average Price Change<br><strong style="color: #10b981">${data.metrics.avg_price_change}</strong></div>
-                    <div class="card">Average Price<br><strong>${data.metrics.average_price}</strong></div>
-                    <div class="card">Most Common Genre<br><strong>${data.metrics.top_genre}</strong></div>
-                `;
+function renderResults(d) {
+    const c = d.checks;
+    const r = d.reach;
+    const studioLine = (s, role) => s.known
+        ? `${escapeHtml(s.name)}: ${s.games} earlier game${s.games === 1 ? '' : 's'} in the data`
+        : `${escapeHtml(s.name)}: no earlier games in the data, so the average ${role} record is used`;
 
-                // 2. Render Chart.js
-                const ctx = document.getElementById('trendsChart').getContext('2d');
-                new Chart(ctx, {
-                    type: 'line',
-                    data: {
-                        labels: data.chart_data.labels,
-                        datasets: [
-                        {
-                            label: data.chart_data.genre1_name, // Dynamic!
-                            data: data.chart_data.genre1_data,
-                            borderColor: '#8b5cf6',
-                            tension: 0.4
-                        },
-                        {
-                            label: data.chart_data.genre2_name, // Dynamic!
-                            data: data.chart_data.genre2_data,
-                            borderColor: '#10b981',
-                            tension: 0.4
-                        }
-                    ]
-                    },
-                    options: {
-                        responsive: true,
-                        plugins: { legend: { labels: { color: 'white' } } },
-                        scales: {
-                            y: { ticks: { color: '#94a3b8' }, grid: { color: '#334155' } },
-                            x: { ticks: { color: '#94a3b8' }, grid: { color: '#334155' } }
-                        }
-                    }
-                });
-                chartLoaded = true;
-            } catch (err) {
-                console.error("Failed to load chart data", err);
-            }
-        });
+    document.getElementById('results').innerHTML = `
+        <div class="card">
+            <h3>Chance of Very Positive reviews</h3>
+            <div class="big-number">${Math.round(d.reception.probability * 100)}%</div>
+            <p class="muted">Very Positive = at least 80% positive reviews (among games that reach 50+ reviews).</p>
+            <p class="muted" style="margin-top:12px">What moved this estimate, compared with an average game</p>
+            ${factorRows(d.reception.factors)}
+            <p class="note">Checked on ${fmtInt(c.reception_test_games)} games released in 2018: AUC ${c.reception_auc.toFixed(3)};
+            ${pct(c.reception_top20)} of the games it rated in its top 20% were Very Positive, against ${pct(c.reception_test_rate)} of all of them.
+            Its probabilities ran slightly low that year (average ${pct(c.reception_mean_prob_after)}).</p>
+        </div>
+        <div class="card">
+            <h3>Expected reach</h3>
+            <div class="big-number">${r.estimate}<span style="font-size:1.2rem;color:var(--muted)">th percentile</span></div>
+            <p class="range">${Math.round(d.coverage * 100)}% range: <strong>${r.low}–${r.high}</strong></p>
+            <div class="reach-scale">
+                <div class="reach-range" style="left:${r.low}%;width:${r.high - r.low}%"></div>
+                <div class="reach-point" style="left:calc(${r.estimate}% - 2px)"></div>
+            </div>
+            <div class="scale-labels"><span>fewest reviews</span><span>most reviews</span></div>
+            <p class="note">More reviews than about ${r.estimate}% of games released the same month. For reference, 2017 games at that level
+            had about ${reviewsText(r.reviews_estimate, r.estimate >= 95)} reviews by May 2019
+            (range ${reviewsText(r.reviews_low, false)}–${reviewsText(r.reviews_high, r.high >= 95)}).
+            In a check on ${fmtInt(c.reach_test_games)} games from 2018, ${pct(c.reach_coverage)} fell inside their range.</p>
+        </div>
+        <div class="card">
+            <h3>Track record used</h3>
+            <p class="muted">Developer — ${studioLine(d.studios.developer, 'developer')}</p>
+            <p class="muted">Publisher — ${studioLine(d.studios.publisher, 'publisher')}</p>
+        </div>`;
+
+    const rows = d.comparables.map(g => `
+        <tr>
+            <td><a href="${escapeHtml(g.url)}" target="_blank" rel="noopener">${escapeHtml(g.name)}</a><br>
+                ${g.tags.map(t => `<span class="tag">${escapeHtml(t)}</span>`).join('')}</td>
+            <td>${g.year}</td>
+            <td>${g.price === 0 ? 'Free' : '$' + g.price.toFixed(2)}</td>
+            <td>${g.positive_share}%</td>
+            <td>${fmtInt(g.reviews)}</td>
+            <td>${escapeHtml(g.owners.split('-').map(fmtInt).join('–'))}</td>
+        </tr>`).join('');
+    document.getElementById('comparables-table').innerHTML = `
+        <tr><th>Game</th><th>Released</th><th>Price</th><th>Positive reviews</th><th>Reviews</th><th>Estimated owners</th></tr>${rows}`;
+    document.getElementById('comparables-card').hidden = false;
+}
+
+document.getElementById('planner-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btn = document.getElementById('estimateBtn');
+    const payload = {
+        description: document.getElementById('desc').value,
+        genres: selected('genre-options'),
+        categories: selected('category-options'),
+        price: document.getElementById('price').value,
+        releaseMonth: document.getElementById('month').value,
+        developer: document.getElementById('developer').value,
+        publisher: document.getElementById('publisher').value,
+        mac: document.getElementById('mac').checked,
+        linux: document.getElementById('linux').checked,
+        ageRestricted: document.getElementById('age').checked,
+    };
+    btn.disabled = true;
+    btn.textContent = 'Estimating...';
+    try {
+        renderResults(await getJSON(`${API}/estimate`, {
+            method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload),
+        }));
+    } catch (err) {
+        document.getElementById('results').innerHTML = `<div class="card error">${escapeHtml(err.message)}</div>`;
+    } finally {
+        btn.disabled = false;
+        btn.textContent = 'Estimate';
     }
 });
+
+// ---------- Market overview ----------
+let marketLoaded = false;
+const axis = { grid: { color: '#334155' }, ticks: { color: '#94a3b8' } };
+
+async function loadMarket() {
+    if (marketLoaded) return;
+    try {
+        const m = await getJSON(`${API}/market`);
+        document.getElementById('market-metrics').innerHTML = `
+            <div class="card">Steam games in the data<strong>${m.metrics.games_total}</strong></div>
+            <div class="card">Released 2014–2018<strong>${m.metrics.games_study}</strong></div>
+            <div class="card">Very Positive (50+ reviews)<strong>${m.metrics.very_positive_rate}</strong></div>
+            <div class="card">Median price of paid games<strong>${m.metrics.median_paid_price}</strong></div>`;
+        new Chart(document.getElementById('yearChart'), {
+            type: 'bar',
+            data: { labels: m.per_year.labels, datasets: [{ data: m.per_year.data, backgroundColor: '#8b5cf6' }] },
+            options: { maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: axis, y: axis } },
+        });
+        new Chart(document.getElementById('priceChart'), {
+            type: 'bar',
+            data: { labels: m.price_vp.labels, datasets: [{ data: m.price_vp.data, backgroundColor: '#10b981' }] },
+            options: { maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: axis, y: { ...axis, title: { display: true, text: '% Very Positive', color: '#94a3b8' } } } },
+        });
+        new Chart(document.getElementById('genreChart'), {
+            type: 'bar',
+            data: { labels: m.genre_vp.labels, datasets: [{ data: m.genre_vp.data, backgroundColor: '#8b5cf6' }] },
+            options: { maintainAspectRatio: false, indexAxis: 'y', plugins: { legend: { display: false } }, scales: { x: { ...axis, title: { display: true, text: '% Very Positive', color: '#94a3b8' } }, y: axis } },
+        });
+        marketLoaded = true;
+    } catch (err) {
+        document.getElementById('market-metrics').innerHTML = `<div class="card error">${escapeHtml(err.message)}</div>`;
+    }
+}
+
+async function loadDataNote() {
+    try {
+        const m = await getJSON(`${API}/market`);
+        document.getElementById('data-note').textContent = `Built on ${m.metrics.games_total} Steam games (data up to May 2019).`;
+    } catch (err) { /* the note is optional */ }
+}
+
+// ---------- How it works ----------
+function renderMethod() {
+    const c = OPTIONS.checks;
+    document.getElementById('method-content').innerHTML = `
+        <p>GamePulse estimates how a Steam game might be received before it is released, using only information a
+        publisher has at that point: price, platforms, genres, store features, release month, the store description, and
+        the developer's and publisher's earlier games. The models are trained on ${escapeHtml(OPTIONS.trained_on)}.</p>
+
+        <h3>What is estimated</h3>
+        <ul>
+            <li><strong>Chance of Very Positive reviews</strong> (80%+ positive): logistic regression, recalibrated on the most recent year.</li>
+            <li><strong>Reach</strong>: rank by number of reviews among games released the same month, a rough stand-in for sales.
+            Gradient boosting, with an ${Math.round(OPTIONS.coverage * 100)}% range from conformal prediction.</li>
+            <li><strong>Comparable games</strong>: the closest store descriptions (TF-IDF, cosine similarity).</li>
+        </ul>
+
+        <h3>How accurate it was on games it had not seen</h3>
+        <p>Each method was fitted on 2014–2016, calibrated on 2017, and tested on 2018:</p>
+        <table class="table">
+            <tr><th>Check</th><th>Result</th></tr>
+            <tr><td>Reception: AUC (0.5 = chance, 1 = perfect)</td><td>${c.reception_auc.toFixed(3)}</td></tr>
+            <tr><td>Reception: Very Positive among the model's top 20%</td><td>${pct(c.reception_top20)} (all games: ${pct(c.reception_test_rate)})</td></tr>
+            <tr><td>Reception: calibration error before / after recalibration</td><td>${c.reception_calibration_error_before.toFixed(3)} / ${c.reception_calibration_error_after.toFixed(3)}</td></tr>
+            <tr><td>Reach: games inside their ${Math.round(OPTIONS.coverage * 100)}% range</td><td>${pct(c.reach_coverage)} (range ± ${c.reach_half_width.toFixed(1)} percentile points)</td></tr>
+            <tr><td>Reach: mean absolute error</td><td>${c.reach_mae.toFixed(1)} percentile points</td></tr>
+            <tr><td>Comparable games sharing a genre (vs. random games)</td><td>${pct(c.comparables_share_genre)} (vs. ${pct(c.comparables_share_genre_random)})</td></tr>
+        </table>
+
+        <h3>Limitations</h3>
+        <ul>
+            <li>The data ends in May 2019, so the models describe the Steam market of 2014–2018.</li>
+            <li>Reviews are a rough stand-in for sales; the data has no sales figures.</li>
+            <li>The Very Positive rate rose over time, so probabilities ran a little low on the newest games.</li>
+            <li>The reach range has the same width for every game, so it holds on average, not for every kind of game.</li>
+            <li>These are estimates from past games, not guarantees. Use them alongside other research.</li>
+        </ul>
+        <p class="muted">Full details: steam_analysis/DATA_AUDIT.md, EVALUATION.md and MODELS.md in the repository.</p>`;
+}
+
+loadOptions();
+loadDataNote();

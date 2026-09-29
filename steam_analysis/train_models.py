@@ -58,8 +58,12 @@ def fit_reception(train: pd.DataFrame):
     M = sparse.hstack([sparse.csr_matrix(scaler.transform(X)),
                        vec.transform(train["short_description"].fillna(""))]).tocsr()
     clf = LogisticRegression(C=0.1, max_iter=3000).fit(M, train["very_positive"].astype(int))
+    # Average effect of the description over the training games, so the app can show whether a
+    # description pushes the estimate above or below that of an average game.
+    text_coef = clf.coef_[0, X.shape[1]:]
+    text_mean = float(np.mean(M[:, X.shape[1]:] @ text_coef))
     return {"vocab": vocab, "columns": list(X.columns), "scaler": scaler, "vectorizer": vec, "model": clf,
-            "recalibration": (1.0, 0.0)}
+            "recalibration": (1.0, 0.0), "text_mean": text_mean}
 
 
 def reception_logit(r, df: pd.DataFrame) -> np.ndarray:
@@ -197,7 +201,12 @@ def main() -> None:
     app_rec = recalibrate(fit_reception(rated[rated["release_year"] <= 2017]), rated[rated["release_year"] == 2018])
     app_reach = conformal(fit_reach(study[study["release_year"] <= 2017]), study[study["release_year"] == 2018])
     app_comp = build_comparables(df[df["total_reviews"] >= 50])
+    ref = study[study["release_year"] == 2017]
+    reach_reference = [
+        {"percentile": q, "reviews": int(ref.loc[(ref["reach_percentile"] - q).abs() <= 2.5, "total_reviews"].median())}
+        for q in range(5, 100, 5)]
     joblib.dump({
+        "reach_reference": reach_reference,
         "reception": app_rec, "reach": app_reach, "comparables": app_comp,
         "studios": studio_records(df, prior_vp),
         "checks": checks, "coverage": COVERAGE,
@@ -235,10 +244,10 @@ Gradient boosting on store info and track record, with an {COVERAGE:.0%} range f
 |---|---|
 | Range | estimate ± {c['reach_half_width']:.1f} percentile points |
 | Games whose real reach fell inside the range | **{c['reach_coverage']:.1%}** (target {COVERAGE:.0%}) |
+| Mean absolute error | {c['reach_mae']:.2f} |
 
 Coverage is a little below the target: the 2018 games were harder to place than the 2017 games used to set
 the range, which is the risk whenever the market changes between calibration and use.
-| Mean absolute error | {c['reach_mae']:.2f} |
 
 ## Comparable games
 

@@ -8,11 +8,11 @@ separate set of games sets the width of the range.
 
 1. Check the method: fit on games up to 2018, calibrate on 2019, and test on
    2020-2023 whether the range contains the real rating about 80% of the time.
-2. Build the app's model the same way on more recent data: fit on games up to
-   2020 and calibrate on 2021-2023. Export it to ml_engine/model.json as plain
-   numbers, so the app needs no machine-learning library.
+2. Build the version 2 app's model the same way on more recent data: fit on games
+   up to 2020 and calibrate on 2021-2023. Export it to analysis/model.json as plain
+   numbers. (Version 3 replaced this app with the Steam-based Launch Planner.)
 
-Outputs: ml_engine/model.json, analysis/INTERVALS.md, analysis/interval_results.csv
+Outputs: analysis/model.json, analysis/INTERVALS.md, analysis/interval_results.csv
 
 Run from the repository root (after analysis/data_audit.py):
     python3 analysis/train_model.py
@@ -33,7 +33,7 @@ from evaluate import publisher_history  # noqa: E402  (same feature as in the ev
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DATA = os.path.join(ROOT, "analysis", "clean_games.csv")
-MODEL_OUT = os.path.join(ROOT, "ml_engine", "model.json")
+MODEL_OUT = os.path.join(ROOT, "analysis", "model.json")
 
 COVERAGE = 0.80
 CATEGORICAL = ["genre_group", "release_month"]

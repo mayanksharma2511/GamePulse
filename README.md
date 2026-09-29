@@ -1,78 +1,85 @@
 # GamePulse
 
-GamePulse is a market-analytics dashboard for video game publishers. It uses a dataset of 1,271 games released between 2017 and 2023 to show market trends, find comparable titles, and estimate how a proposed game might be rated, with a range that shows how uncertain that estimate is.
+GamePulse helps a game studio or publisher judge a Steam game **before it is released**. Describe the game, and its **Launch Planner** shows the most comparable existing Steam games, the chance that the game will get Very Positive reviews, and how many players it may reach, with a range for how uncertain that is. Every estimate was tested on games the models had never seen, and the app shows those results next to each estimate.
+
+![Launch Planner](docs/screenshots/launch_planner.png)
 
 ## Project history
 
-- **Version 1 (course project).** Built by a team of three for a semester-long Software Engineering and Project Management course, using sprints and user stories. It estimated success with a hand-written rule. The submitted version is preserved at the tag [`v1-course-submission`](https://github.com/mayanksharma2511/GamePulse/tree/v1-course-submission).
-- **Version 2 (independent extension).** After the course, I (Mayank Sharma) went back to test whether that rule actually worked. I audited the data, evaluated the rule against simple baselines and learned models on games released later, and replaced it with the best model, together with prediction ranges that were checked on unseen games. This work is in `analysis/`.
+GamePulse went through three versions. The later two came from asking whether the earlier one actually worked.
 
-## What I found
+- **Version 1: course project.** Built by a team of three for a semester-long Software Engineering and Project Management course, using sprints and user stories. It used 1,271 games and a hand-written rule to score how successful a new game might be. The submitted version is preserved at the tag [`v1-course-submission`](https://github.com/mayanksharma2511/GamePulse/tree/v1-course-submission).
+- **Version 2: testing the rule.** After the course, I (Mayank Sharma) tested that rule on games released after the ones it was built from. About a quarter of the dataset's ratings and prices turned out to be filled-in averages, and the rule's scores had no relationship with real ratings (Spearman ρ = −0.05). It was less accurate than always guessing the average. The best learned model improved on that average only modestly, because the data contained little information about how games are received. Details: [`analysis/`](analysis/).
+- **Version 3: better data.** I rebuilt GamePulse on 26,913 Steam games with the information that matters before launch (store features, descriptions and each studio's track record), with real outcomes (review scores and review counts) to test against. This is the current app. Details: [`steam_analysis/`](steam_analysis/).
 
-1. **About a quarter of the data was filled in.** 345 ratings (27%) and 327 prices (26%) have values like 7.333950 or 23.586207, matching the overall or publisher averages rather than real scores and store prices. 154 ratings equal the dataset's average rating exactly. See [`analysis/DATA_AUDIT.md`](analysis/DATA_AUDIT.md).
-2. **The original rule did not predict ratings.** Tested on 375 games released in 2020–2023, its score had essentially no relationship with the real ratings (Spearman ρ = −0.05), and its error was larger than simply guessing the average rating every time.
-3. **Genre, price and release month carried little signal.** Models using only these inputs were not clearly better than guessing the average.
-4. **The publisher's track record did help, modestly.** Adding each publisher's average rating from earlier games reduced the error by 0.07 points (95% interval 0.03–0.11) and gave ρ = 0.33.
-5. **Honest ranges are wide.** An 80% range needs to be about ±1.4–1.6 rating points. On unseen games, the range contained the real rating 81.3% of the time.
+## What the app does
 
-## Evaluation
-
-Methods learned from 544 games released 2017–2019 and were tested on 375 games released 2020–2023, using only games with an original (not filled-in) rating. Full details: [`analysis/EVALUATION.md`](analysis/EVALUATION.md).
-
-| Method | Mean absolute error (out of 10) | Spearman ρ | Error vs. guessing the average (95% interval) |
-|---|---|---|---|
-| Guess the overall average | 0.962 | — | — |
-| Genre-group average | 0.977 | 0.08 | +0.015 (−0.018 to +0.048) |
-| Original GamePulse rule (score ÷ 10) | 1.569 | −0.05 | +0.624 (+0.510 to +0.738) |
-| Ridge regression: genre group, month, price | 0.937 | 0.19 | −0.025 (−0.058 to +0.009) |
-| Gradient boosting: genre group, month, price | 0.958 | 0.19 | −0.004 (−0.051 to +0.038) |
-| **Ridge regression: + publisher history** | **0.894** | **0.33** | **−0.068 (−0.108 to −0.029)** |
-| Gradient boosting: + publisher history | 0.895 | 0.34 | −0.067 (−0.109 to −0.022) |
-
-The original rule could score 351 of the 375 test games (the others had a genre that did not appear in the training years).
-
-## Prediction ranges
-
-Each estimate comes with an 80% range built with split conformal prediction: the model is fitted on one set of games, and the size of its errors on a later, separate set decides how wide the range must be. Full details: [`analysis/INTERVALS.md`](analysis/INTERVALS.md).
-
-| Check (fit 2017–2018, calibrate 2019, test 2020–2023) | Result |
+| Page | What it shows |
 |---|---|
-| Range | estimate ± 1.42 |
-| Test games whose real rating fell inside the range | 81.3% (target 80%) |
-| Publishers with 3+ earlier rated games | 82.7% (133 games) |
-| Other publishers | 80.6% (242 games) |
+| **Launch Planner** | For a game described by its store blurb, genres, features, price, platforms, release month, developer and publisher: the chance of Very Positive reviews and what moved that estimate; expected reach with an 80% range; the closest comparable Steam games with their prices, review scores and player estimates |
+| **Market Overview** | Steam releases per year, and how the share of Very Positive games varies by price and genre |
+| **How It Works** | The methods, their measured accuracy on unseen games, and their limitations |
 
-The model in the app is built the same way on more recent data (fitted on 708 games from 2017–2020, calibrated on 211 games from 2021–2023), which gives a range of ± 1.56.
+## Results on games the models had not seen
 
-## Features
+Models were trained on games released 2014–2017 and tested on 8,120 games released in 2018. Full details: [`steam_analysis/EVALUATION.md`](steam_analysis/EVALUATION.md) and [`steam_analysis/MODELS.md`](steam_analysis/MODELS.md).
 
-| Page | What it does |
+**Reception: will a game be Very Positive (80%+ positive reviews)?** (2,003 test games with 50+ reviews; 52.9% were Very Positive)
+
+| Method | AUC | Very Positive among the model's top 20% |
+|---|---|---|
+| Base rate | 0.500 | — |
+| Logistic regression: store info | 0.718 | 75.0% |
+| Logistic regression: + developer and publisher track record | 0.742 | 79.2% |
+| **Logistic regression: + store description** | **0.752** | **80.5%** |
+
+**Reach: how many reviews will it collect, compared with games released the same month?** (a percentile, 0–100)
+
+| Method | Mean absolute error | Spearman ρ |
+|---|---|---|
+| Always guess the middle (50th percentile) | 25.00 | — |
+| Ridge regression: store info | 20.93 | 0.500 |
+| **Gradient boosting: store info + track record** | **19.47** | **0.555** |
+
+Every model is clearly better than its baseline: the 95% bootstrap intervals of the difference exclude zero.
+
+**The models used in the app** were checked the way they are used (fitted on 2014–2016, calibrated on 2017, tested on 2018):
+
+| Check | Result |
 |---|---|
-| **Dashboard** | Number of games, average rating and average price (original values only), most common genre, genre distribution, and average price by release year |
-| **Rating Estimate** | Choose a genre group, publisher, price and release date to get an estimated rating out of 10, an 80% range, and how much each input moved the estimate compared with an average game |
-| **Market Trends** | Average price change over the years with enough games, and how many games of the two most common genres the dataset has per year |
-| **Similarity Analysis** | Enter a game from the dataset to see the highest-rated games in the same genre, with price, publisher and descriptive tags |
+| Reception: calibration error before and after recalibration on the latest year | 0.119 → 0.082 |
+| Reach: share of games whose real reach fell inside the 80% range | 77.3% (range ± 30.1 percentile points) |
+| Comparable games: top-10 matches sharing a genre with the game | 66.6% (48.9% for random games) |
 
-**Descriptive tags.** For each game, GamePulse reads its plot description, drops common filler words, and uses the three most frequent remaining words as tags.
+## Keeping the models honest
+
+- **Only pre-launch information is used.** User tags are chosen by players after release, so they are shown for comparable games but never used to predict. Trading cards, Workshop support, SteamVR Collectibles, and the Early Access and Free to Play labels were excluded because they are often added or changed after release.
+- **Reach is compared within a release month.** Older games have had longer to collect reviews, so raw counts cannot be compared across release dates.
+- **Track records use only a studio's games released at least a year earlier,** so a game's own outcome, or any test game's, is never used as an input.
+- **Time-based split.** Models learn from earlier games and are tested on later ones, as they would be used.
+- **Measured uncertainty.** Probabilities are recalibrated on the most recent year, and the reach range comes from conformal prediction, with its real coverage reported.
 
 ## Limitations
 
-- The ratings come from a single scraped dataset, and the filled-in values were identified by a rule (more than two decimal places), not by labels in the data.
-- The inputs explain only a small part of how a game is rated. Quality, reviews and marketing are not in the data, so even the best model is only modestly better than guessing the average.
-- The range has the same width for every game, so the 80% holds on average, not separately for every kind of game.
-- The dataset has few games from 2022–2023, and the model assumes future games resemble past ones.
-- Rating is not the same as commercial success; the data has no sales figures.
+- The data ends in May 2019, so the models describe the Steam market of 2014–2018.
+- Review counts are a rough stand-in for sales; the data has no sales figures.
+- The share of Very Positive games rose over time, so even after recalibration the probabilities ran slightly low on the newest games (44.8% predicted on average vs 52.9% observed).
+- The reach range has the same width for every game and covered 77.3% of test games, slightly below its 80% target.
+- Price, platforms and store features are as listed in 2019, which can differ from launch.
+- The reception model only covers games that reached 50+ reviews.
 
-## Reproducing the analysis
+## Reproducing the results
 
-You need Python 3.
+You need Python 3. The Steam data is included (`steam_analysis/data/raw/`).
 
 ```bash
-pip3 install -r analysis/requirements.txt
-python3 analysis/data_audit.py    # writes analysis/clean_games.csv and DATA_AUDIT.md
-python3 analysis/evaluate.py      # writes analysis/results.csv and EVALUATION.md
-python3 analysis/train_model.py   # writes ml_engine/model.json, interval_results.csv and INTERVALS.md
+pip3 install -r steam_analysis/requirements.txt
+python3 steam_analysis/prepare_data.py   # audit and features → DATA_AUDIT.md, data/steam_games.csv
+python3 steam_analysis/evaluate.py       # model comparison → EVALUATION.md
+python3 steam_analysis/train_models.py   # app models and checks → MODELS.md, ml_engine/steam_models.joblib
 ```
+
+The version 2 analysis can be reproduced the same way with the scripts in `analysis/` (see its reports).
 
 ## Running the app
 
@@ -87,6 +94,8 @@ node server.js        # runs on http://localhost:3000
 
 Then open `frontend/index.html` in a browser.
 
+![Market Overview](docs/screenshots/market_overview.png)
+
 ## Architecture
 
 ```
@@ -94,28 +103,31 @@ Browser (HTML, CSS, JavaScript, Chart.js)
         │  fetch()
         ▼
 Node.js / Express API (port 3000)
-        │  runs Python scripts with execFile, returns JSON
+        │  runs ml_engine/launch_planner.py with execFile, returns JSON
         ▼
-Python + pandas ──► ml_engine/finalData.csv (1,271 games)
-                └─► ml_engine/model.json (model exported by analysis/train_model.py)
+Python (pandas, scikit-learn) ──► ml_engine/steam_models.joblib (built by steam_analysis/train_models.py)
+                              └─► steam_analysis/data/steam_games.csv
 ```
 
-| Endpoint | Method | Python script |
+| Endpoint | Method | What it returns |
 |---|---|---|
-| `/api/dashboard-stats` | GET | `ml_engine/dashboard.py` |
-| `/api/model-info` | GET | `ml_engine/model_info.py` |
-| `/api/predict` | POST | `ml_engine/predict.py` |
-| `/api/recommend` | POST | `ml_engine/recommend.py` |
+| `/api/options` | GET | Form options and the models' measured accuracy |
+| `/api/estimate` | POST | Estimates and comparable games for one game |
+| `/api/market` | GET | Market statistics |
 
 ## Repository structure
 
 ```
-analysis/     data audit, evaluation and model training (version 2)
-backend/      Express API
-frontend/     dashboard (HTML, CSS, JavaScript)
-ml_engine/    dataset, exported model and the Python scripts the API runs
+steam_analysis/   version 3: Steam data, audit, evaluation and model training
+analysis/         version 2: audit and evaluation of the original dataset and rule
+ml_engine/        the Launch Planner script and trained models used by the API
+backend/          Express API
+frontend/         the web app
+docs/             screenshots
 ```
 
-## Tech stack
+## Data and credits
 
-Python (pandas, NumPy, SciPy, scikit-learn), Node.js, Express, JavaScript, Chart.js.
+Steam data: ["Steam Store Games (Clean dataset)"](https://www.kaggle.com/datasets/nikdavis/steam-store-games) by Nik Davis, collected from the Steam store and SteamSpy, licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Only the store ID and short description were kept from its description file.
+
+Tech: Python (pandas, NumPy, SciPy, scikit-learn), Node.js, Express, JavaScript, Chart.js.
