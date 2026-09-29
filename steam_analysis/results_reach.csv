@@ -1,0 +1,7 @@
+method,mae,mae_vs_base_low,mae_vs_base_high,spearman_rho
+Middle of the month (50th percentile),25.0,,,
+Ridge regression: store info,20.93,-4.34,-3.84,0.5
+Gradient boosting: store info,20.04,-5.23,-4.68,0.531
+Ridge regression: store info + track record,20.16,-5.13,-4.55,0.525
+Gradient boosting: store info + track record,19.47,-5.87,-5.25,0.555
+Ridge regression: store info + track record + description,19.79,-5.49,-4.91,0.549

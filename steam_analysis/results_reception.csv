@@ -1,0 +1,7 @@
+method,auc,brier,brier_vs_base_low,brier_vs_base_high,top20_hit_rate,calibration_error
+Base rate (share of Very Positive games in training),0.5,0.2572,,,0.5,0.09
+Logistic regression: store info,0.715,0.228,-0.0356,-0.0228,0.757,0.119
+Gradient boosting: store info,0.729,0.2237,-0.0404,-0.0264,0.775,0.118
+Logistic regression: store info + track record,0.74,0.2176,-0.0467,-0.0323,0.792,0.105
+Gradient boosting: store info + track record,0.741,0.2172,-0.0472,-0.032,0.777,0.102
+Logistic regression: store info + track record + description,0.75,0.2146,-0.0501,-0.0356,0.81,0.106
