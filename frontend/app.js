@@ -67,56 +67,95 @@ function reviewsText(n, isTop) {
     return isTop ? `${fmtInt(n)}+` : fmtInt(n);
 }
 
+// Plain-language labels. The rules are shown to the user under "How is this worked out?".
+function receptionVerdict(p, typical) {
+    if (p >= typical + 0.10) return { text: 'Better than most games', cls: 'good' };
+    if (p <= typical - 0.10) return { text: 'Below average', cls: 'bad' };
+    return { text: 'About average', cls: 'neutral' };
+}
+function reachVerdict(pct) {
+    if (pct >= 67) return { text: 'Above average', cls: 'good' };
+    if (pct <= 33) return { text: 'Below average', cls: 'bad' };
+    return { text: 'About average', cls: 'neutral' };
+}
+const inTen = (pct) => Math.max(0, Math.min(10, Math.round(pct / 10)));
+
+function factorChips(factors, sign) {
+    // The short view lists only what the game has or the publisher chose; features it
+    // lacks ("No Steam Cloud") are listed with everything else under "How is this worked out?".
+    const picked = factors.filter(f => sign * f.effect > 0.05 && !f.factor.startsWith('No ')).slice(0, 3);
+    if (!picked.length) return '<span class="muted">Nothing stands out</span>';
+    return picked.map(f => `<span class="pill ${sign > 0 ? 'good' : 'bad'}">${escapeHtml(f.factor)}</span>`).join('');
+}
+
 function renderResults(d) {
     const c = d.checks;
     const r = d.reach;
+    const rec = d.reception;
+    const rv = receptionVerdict(rec.probability, rec.typical);
+    const reachV = reachVerdict(r.estimate);
     const studioLine = (s, role) => s.known
-        ? `${escapeHtml(s.name)}: ${s.games} earlier game${s.games === 1 ? '' : 's'} in the data`
-        : `${escapeHtml(s.name)}: no earlier games in the data, so the average ${role} record is used`;
+        ? `${escapeHtml(s.name)} (${s.games} earlier game${s.games === 1 ? '' : 's'} in the data)`
+        : `${escapeHtml(s.name)}: not in the data, so treated as a new ${role}`;
 
     document.getElementById('results').innerHTML = `
         <div class="card">
-            <h3>Chance of Very Positive reviews</h3>
-            <div class="big-number">${Math.round(d.reception.probability * 100)}%</div>
-            <p class="muted">Very Positive = at least 80% positive reviews (among games that reach 50+ reviews).</p>
-            <p class="muted" style="margin-top:12px">What moved this estimate, compared with an average game</p>
-            ${factorRows(d.reception.factors)}
-            <p class="note">Checked on ${fmtInt(c.reception_test_games)} games released in 2018: AUC ${c.reception_auc.toFixed(3)};
-            ${pct(c.reception_top20)} of the games it rated in its top 20% were Very Positive, against ${pct(c.reception_test_rate)} of all of them.
-            Its probabilities ran slightly low that year (average ${pct(c.reception_mean_prob_after)}).</p>
+            <div class="card-head"><h3>Reviews</h3><span class="pill ${rv.cls}">${rv.text}</span></div>
+            <div class="big-number">${Math.round(rec.probability * 100)}%</div>
+            <p>chance of <strong>Very Positive</strong> reviews on Steam
+            <span class="muted">(typical game: ${Math.round(rec.typical * 100)}%)</span></p>
+            <div class="factor-summary">
+                <div><span class="muted">Helping</span>${factorChips(rec.factors, 1)}</div>
+                <div><span class="muted">Hurting</span>${factorChips(rec.factors, -1)}</div>
+            </div>
+            <details>
+                <summary>How is this worked out?</summary>
+                <p class="note">"Very Positive" means at least 80% positive reviews (among games that reach 50+ reviews).
+                The estimate comes from a model trained on ${escapeHtml(d.trained_on)}. Below is how much each
+                input moved it compared with an average game. These are patterns in past games, not causes: a higher price, for example,
+                goes with better reviews because more polished games tend to charge more.</p>
+                ${factorRows(rec.factors.slice(0, 8))}
+                <p class="note"><strong>How reliable:</strong> tested on ${fmtInt(c.reception_test_games)} games released in 2018 that the model had
+                not seen, ${pct(c.reception_top20)} of the games it rated most likely (its top 20%) were Very Positive, against
+                ${pct(c.reception_test_rate)} overall (AUC ${c.reception_auc.toFixed(3)}). Its probabilities ran slightly low that year.</p>
+                <p class="note"><strong>Labels:</strong> "Better than most" = at least 10 points above a typical game;
+                "Below average" = at least 10 points below; otherwise "About average".</p>
+            </details>
         </div>
         <div class="card">
-            <h3>Expected reach</h3>
-            <div class="big-number">${r.estimate}<span style="font-size:1.2rem;color:var(--muted)">th percentile</span></div>
-            <p class="range">${Math.round(d.coverage * 100)}% range: <strong>${r.low}–${r.high}</strong></p>
+            <div class="card-head"><h3>Reach</h3><span class="pill ${reachV.cls}">${reachV.text}</span></div>
+            <p class="lead">Likely to get more reviews than about <strong>${inTen(r.estimate)} in 10</strong> games released the same month.</p>
             <div class="reach-scale">
                 <div class="reach-range" style="left:${r.low}%;width:${r.high - r.low}%"></div>
                 <div class="reach-point" style="left:calc(${r.estimate}% - 2px)"></div>
             </div>
-            <div class="scale-labels"><span>fewest reviews</span><span>most reviews</span></div>
-            <p class="note">More reviews than about ${r.estimate}% of games released the same month. For reference, 2017 games at that level
-            had about ${reviewsText(r.reviews_estimate, r.estimate >= 95)} reviews by May 2019
-            (range ${reviewsText(r.reviews_low, false)}–${reviewsText(r.reviews_high, r.high >= 95)}).
-            In a check on ${fmtInt(c.reach_test_games)} games from 2018, ${pct(c.reach_coverage)} fell inside their range.</p>
-        </div>
-        <div class="card">
-            <h3>Track record used</h3>
-            <p class="muted">Developer — ${studioLine(d.studios.developer, 'developer')}</p>
-            <p class="muted">Publisher — ${studioLine(d.studios.publisher, 'publisher')}</p>
+            <div class="scale-labels"><span>lower reach</span><span>higher reach</span></div>
+            <p class="muted" style="margin-top:8px">Realistic range: more than ${inTen(r.low)} to ${inTen(r.high)} in 10.</p>
+            <details>
+                <summary>How is this worked out?</summary>
+                <p class="note">Reach is measured by number of reviews, a rough stand-in for sales. The estimate is the
+                ${r.estimate}th percentile among games released the same month, with an ${Math.round(d.coverage * 100)}% range of
+                ${r.low}–${r.high}. For reference, 2017 games at that level had about ${reviewsText(r.reviews_estimate, r.estimate >= 95)}
+                reviews by May 2019 (range ${reviewsText(r.reviews_low, false)}–${reviewsText(r.reviews_high, r.high >= 95)}).</p>
+                <p class="note"><strong>How reliable:</strong> in a test on ${fmtInt(c.reach_test_games)} games from 2018, ${pct(c.reach_coverage)}
+                landed inside their range.</p>
+                <p class="note"><strong>Studio track record used:</strong> developer ${studioLine(d.studios.developer, 'developer')};
+                publisher ${studioLine(d.studios.publisher, 'publisher')}.</p>
+                <p class="note"><strong>Labels:</strong> "Above average" = 67th percentile or higher; "Below average" = 33rd or lower.</p>
+            </details>
         </div>`;
 
     const rows = d.comparables.map(g => `
         <tr>
-            <td><a href="${escapeHtml(g.url)}" target="_blank" rel="noopener">${escapeHtml(g.name)}</a><br>
+            <td><a href="${escapeHtml(g.url)}" target="_blank" rel="noopener">${escapeHtml(g.name)}</a>
+                <span class="muted">(${g.year})</span><br>
                 ${g.tags.map(t => `<span class="tag">${escapeHtml(t)}</span>`).join('')}</td>
-            <td>${g.year}</td>
             <td>${g.price === 0 ? 'Free' : '$' + g.price.toFixed(2)}</td>
-            <td>${g.positive_share}%</td>
-            <td>${fmtInt(g.reviews)}</td>
+            <td>${g.positive_share}% positive</td>
             <td>${escapeHtml(g.owners.split('-').map(fmtInt).join('–'))}</td>
         </tr>`).join('');
     document.getElementById('comparables-table').innerHTML = `
-        <tr><th>Game</th><th>Released</th><th>Price</th><th>Positive reviews</th><th>Reviews</th><th>Estimated owners</th></tr>${rows}`;
+        <tr><th>Game</th><th>Price</th><th>Reviews</th><th>Estimated players</th></tr>${rows}`;
     document.getElementById('comparables-card').hidden = false;
 }
 

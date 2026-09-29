@@ -90,3 +90,15 @@ h1 { margin-bottom: 6px; }
     .chart-grid .wide { grid-column: span 1; }
     .metric-cards { grid-template-columns: 1fr 1fr; }
 }
+
+.card-head { display: flex; justify-content: space-between; align-items: center; }
+.pill { display: inline-block; padding: 3px 10px; border-radius: 12px; font-size: 0.8rem; margin: 4px 6px 0 0; }
+.pill.good { background: rgba(16, 185, 129, 0.15); color: #6ee7b7; }
+.pill.bad { background: rgba(248, 113, 113, 0.15); color: #fca5a5; }
+.pill.neutral { background: rgba(148, 163, 184, 0.15); color: #cbd5e1; }
+.lead { font-size: 1.15rem; margin-top: 10px; line-height: 1.4; }
+.factor-summary { margin-top: 14px; display: grid; gap: 8px; }
+.factor-summary .muted { display: inline-block; width: 70px; margin: 0; }
+details { margin-top: 14px; border-top: 1px solid var(--border); padding-top: 10px; }
+summary { cursor: pointer; color: #c4b5fd; font-size: 0.9rem; }
+.form-panel select { appearance: none; -webkit-appearance: none; background-image: linear-gradient(45deg, transparent 50%, #94a3b8 50%), linear-gradient(135deg, #94a3b8 50%, transparent 50%); background-position: calc(100% - 18px) 50%, calc(100% - 13px) 50%; background-size: 5px 5px; background-repeat: no-repeat; }

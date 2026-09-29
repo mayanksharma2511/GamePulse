@@ -100,22 +100,32 @@ def estimate(payload: dict):
     text_effect = float(a * ((text_vec @ coefs[n_tab:])[0] - r["text_mean"]))
 
     def label(col):
-        if col.startswith("genre: ") or col.startswith("category: "):
+        if col.startswith("genre: "):
+            # Only genres the game has are shown; "not an Action game" is not something to act on
             name = col.split(": ", 1)[1]
-            return f"{'Has' if X[col].iloc[0] else 'Does not have'} {name}"
+            return f"{name} genre" if X[col].iloc[0] else None
+        if col.startswith("category: "):
+            name = col.split(": ", 1)[1]
+            return name if X[col].iloc[0] else f"No {name}"
         names = {
             "price": f"Price ${price:.2f}", "log_price": f"Price ${price:.2f}", "is_free": f"Price ${price:.2f}",
             "mac": "Mac version" if row["mac"][0] else "No Mac version",
             "linux": "Linux version" if row["linux"][0] else "No Linux version",
             "age_restricted": "Age restricted" if row["age_restricted"][0] else "No age restriction",
-            "developer_prior_games_log": "Developer's number of earlier games",
-            "developer_prior_reach": "Developer's earlier reach",
-            "developer_prior_vp": "Developer's earlier reviews",
-            "publisher_prior_games_log": "Publisher's number of earlier games",
-            "publisher_prior_reach": "Publisher's earlier reach",
-            "publisher_prior_vp": "Publisher's earlier reviews",
+            "developer_prior_games_log": "Developer's experience",
+            "developer_prior_reach": "Developer's past reach",
+            "developer_prior_vp": "Developer's past reviews",
+            "publisher_prior_games_log": "Publisher's experience",
+            "publisher_prior_reach": "Publisher's past reach",
+            "publisher_prior_vp": "Publisher's past reviews",
             "self_published": "Self-published" if row["self_published"][0] else "Separate publisher",
         }
+        # For a studio with no earlier games, its "record" is just the average, so only
+        # its lack of experience is shown
+        if col.startswith("developer_prior") and not dev_known:
+            return "New developer" if col == "developer_prior_games_log" else None
+        if col.startswith("publisher_prior") and not pub_known:
+            return "New publisher" if col == "publisher_prior_games_log" else None
         if col.startswith("month_"):
             return f"Release in {MONTHS[int(col.split('_')[1]) - 1]}" if X[col].iloc[0] else None
         return names.get(col, col)
@@ -125,9 +135,9 @@ def estimate(payload: dict):
         name = label(col)
         if name and abs(v) > 1e-9:
             grouped[name] = grouped.get(name, 0.0) + float(v)
-    grouped["Store description wording"] = text_effect
+    grouped["Description wording"] = text_effect
     factors = sorted(({"factor": k, "effect": round(v, 3)} for k, v in grouped.items()),
-                     key=lambda f: abs(f["effect"]), reverse=True)[:6]
+                     key=lambda f: abs(f["effect"]), reverse=True)[:10]
 
     # Reach (gradient boosting + conformal range)
     reach = float(reach_pred(m["reach"], row)[0])
@@ -151,7 +161,8 @@ def estimate(payload: dict):
     } for (_, g), s in zip(games.iterrows(), sims[0])]
 
     return {
-        "reception": {"probability": round(float(prob), 3), "factors": factors},
+        "reception": {"probability": round(float(prob), 3), "factors": factors,
+                      "typical": round(m["typical_very_positive"], 3)},
         "reach": {"estimate": round(reach), "low": round(lo), "high": round(hi),
                   "reviews_estimate": reviews_at(reach), "reviews_low": reviews_at(lo), "reviews_high": reviews_at(hi)},
         "comparables": comparables,

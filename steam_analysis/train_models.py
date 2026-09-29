@@ -207,6 +207,8 @@ def main() -> None:
         for q in range(5, 100, 5)]
     joblib.dump({
         "reach_reference": reach_reference,
+        # Share of Very Positive games among 2014-2018 releases with 50+ reviews (a typical game)
+        "typical_very_positive": float(rated["very_positive"].mean()),
         "reception": app_rec, "reach": app_reach, "comparables": app_comp,
         "studios": studio_records(df, prior_vp),
         "checks": checks, "coverage": COVERAGE,
