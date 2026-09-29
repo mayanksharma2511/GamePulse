@@ -8,7 +8,7 @@ from collections import Counter
 # Custom NLP algorithm to extract defining tags from a paragraph
 def extract_keywords(plot_text):
     if not isinstance(plot_text, str) or plot_text.lower() == 'nan':
-        return ["Action", "Adventure"] # Fallback tags
+        return []  # No description, so no tags
     
     # Words we don't care about
     stopwords = {"the", "and", "that", "for", "with", "from", "this", "game", "player", "players", "their", "which", "have", "they", "will", "into", "through", "character", "characters", "about"}
@@ -50,16 +50,17 @@ def get_recommendations(target_name):
     similar_games = df[(df[COL_GENRE] == target_genre) & (df[COL_NAME].str.lower() != target_name.lower())].copy()
     similar_games = similar_games.sort_values(by=COL_RATING, ascending=False).head(6)
 
+    if similar_games.empty:
+        return {"error": f"No other games in the dataset share the genre '{target_genre}'."}
+
     results = []
     for _, row in similar_games.iterrows():
-        match_percentage = min(int(float(row[COL_RATING]) * 10 + 15), 99) 
-        
+
         # Run our NLP Extractor on the storyline!
         smart_tags = extract_keywords(str(row.get(COL_PLOTS, '')))
         
         results.append({
             "title": str(row[COL_NAME]),
-            "match": f"{match_percentage}%",
             "genre": str(row[COL_GENRE]),
             "price": f"${float(row[COL_PRICE]):.2f}",
             "rating": f"{float(row[COL_RATING]):.1f}",

@@ -4,78 +4,75 @@ import os
 import pandas as pd
 from datetime import datetime
 
-def predict_success(genre, price, platform, release_date):
+
+def predict_score(genre, price, release_date):
+    """Rule-based score built from the historical ratings of games in one genre.
+
+    This is a heuristic, not a trained model: the adjustments (+10, -20, +/-5)
+    are fixed by hand. See the README for how it works and its limitations.
+    """
     base_dir = os.path.dirname(os.path.abspath(__file__))
     csv_path = os.path.join(base_dir, 'finalData.csv')
-    
+
     try:
         df = pd.read_csv(csv_path)
     except FileNotFoundError:
         return {"error": "finalData.csv not found."}
 
     df.columns = df.columns.str.strip()
-    user_price = float(price)
-    
-    # Extract month from the user's release date (Format: YYYY-MM-DD)
+
+    try:
+        user_price = float(price)
+    except ValueError:
+        return {"error": "Price must be a number."}
+
     try:
         release_month = datetime.strptime(release_date, "%Y-%m-%d").month
     except ValueError:
-        release_month = 6 # Fallback to summer if date is invalid
+        return {"error": "Release date must be in YYYY-MM-DD format."}
 
-    # 1. Filter dataset by the requested genre
-    genre_data = df[df['Genre'].str.contains(genre, case=False, na=False)].copy()
-    
+    # 1. Games in exactly the chosen genre
+    genre_data = df[df['Genre'].str.lower() == genre.lower()].copy()
     if genre_data.empty:
-        return {
-            "success_probability": "50%",
-            "risk_level": "High",
-            "recommendation": "Insufficient market data for this genre to make a confident prediction."
-        }
+        return {"error": f"No games in the dataset have the genre '{genre}'."}
 
-    # 2. Extract release months from historical data for seasonality check
     genre_data['Month'] = pd.to_datetime(genre_data['Released Date'], errors='coerce').dt.month
-    
-    # 3. The Math: Calculate base probability from historical ratings
+
+    # 2. Base score: the genre's average rating as a percentage
     avg_genre_rating = genre_data['Rating'].mean()
-    base_prob = (avg_genre_rating / 10.0) * 100 # Assuming 10 is max rating based on your CSV
+    score = (avg_genre_rating / 10.0) * 100
 
-    # 4. Price Analysis
+    # 3. Price adjustment against the genre's average price
     avg_price = genre_data['Price'].mean()
-    price_diff = user_price - avg_price
-    
     if user_price <= avg_price:
-        base_prob += 10 # Competitive pricing bonus
+        score += 10
     elif user_price > avg_price * 1.5:
-        base_prob -= 20 # Severe overpricing penalty
+        score -= 20
     else:
-        base_prob -= (price_diff / avg_price) * 15 # Gradual penalty
+        score -= ((user_price - avg_price) / avg_price) * 15
 
-    # 5. Seasonality Analysis (Does this genre do well in this month?)
+    # 4. Release-month adjustment
     month_data = genre_data[genre_data['Month'] == release_month]
     if not month_data.empty:
-        month_avg_rating = month_data['Rating'].mean()
-        if month_avg_rating > avg_genre_rating:
-            base_prob += 5 # Good release window bonus
-        else:
-            base_prob -= 5 # Poor release window penalty
+        score += 5 if month_data['Rating'].mean() > avg_genre_rating else -5
 
-    # Cap probability between 15% and 98%
-    final_score = min(max(int(base_prob), 15), 98)
+    final_score = min(max(int(score), 15), 98)
     risk_level = "Low" if final_score > 75 else "Medium" if final_score > 50 else "High"
-    
+
     return {
-        "success_probability": f"{final_score}%",
+        "score": final_score,
         "risk_level": risk_level,
-        "recommendation": f"The average {genre} game costs ${avg_price:.2f}. Your pricing and release window put this project at {risk_level.lower()} risk."
+        "games_in_genre": int(len(genre_data)),
+        "games_in_month": int(len(month_data)),
+        "explanation": (
+            f"Based on {len(genre_data)} {genre} games (average rating {avg_genre_rating:.1f}/10, "
+            f"average price ${avg_price:.2f}), of which {len(month_data)} were released in the same month."
+        ),
     }
 
+
 if __name__ == "__main__":
-    if len(sys.argv) >= 5:
-        genre = sys.argv[1]
-        price = sys.argv[2]
-        platform = sys.argv[3]
-        release_date = sys.argv[4] # New parameter
-        result = predict_success(genre, price, platform, release_date)
-        print(json.dumps(result))
+    if len(sys.argv) >= 4:
+        print(json.dumps(predict_score(sys.argv[1], sys.argv[2], sys.argv[3])))
     else:
-        print(json.dumps({"error": "Missing parameters for prediction."}))
+        print(json.dumps({"error": "Expected genre, price and release date."}))

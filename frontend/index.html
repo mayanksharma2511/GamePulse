@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GamePulse | Intelligence Platform</title>
+    <title>GamePulse</title>
     <link rel="stylesheet" href="styles.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
@@ -12,10 +12,10 @@
         <nav class="sidebar">
             <div class="logo-area">
                 <h2>GamePulse</h2>
-                <p>Decision Platform</p>
+                <p>Game market analytics</p>
             </div>
             <ul class="nav-links">
-                <li data-target="predict-view">Success Prediction</li>
+                <li data-target="predict-view">Success Score</li>
                 <li data-target="trends-view">Market Trends</li>
                 <li class="active" data-target="dashboard-view">Dashboard</li>
                 <li data-target="similarity-view">Similarity Analysis</li>
@@ -23,11 +23,6 @@
         </nav>
 
         <main class="main-content">
-            <header class="top-bar">
-                <input type="text" placeholder="Search games, publishers, trends..." class="global-search">
-                <div class="user-profile">Mayank Sharma</div>
-            </header>
-
            <section id="dashboard-view" class="view active-view">
             <h1>Dashboard</h1>
             <p>Overview of market analytics and game insights.</p>
@@ -39,7 +34,7 @@
                         <canvas id="genreChart"></canvas>
                      </div>
                      <div class="card" style="flex: 1;">
-                        <h3>Pricing Trends</h3>
+                        <h3>Average Price by Release Year</h3>
                         <canvas id="pricingChart"></canvas>
                     </div>
                 </div>
@@ -47,10 +42,10 @@
 
             <section id="similarity-view" class="view hidden-view">
                 <h1>Similarity Analysis</h1>
-                <p>Find games similar to yours based on genre, mechanics, and positioning.</p>
+                <p>Enter a game from the dataset to see the highest-rated games in the same genre.</p>
                 
                 <div class="search-box">
-                    <input type="text" id="gameSearchInput" placeholder="e.g., Cyberpunk Legends">
+                    <input type="text" id="gameSearchInput" placeholder="e.g., Hades">
                     <button id="searchBtn">Analyze</button>
                 </div>
 
@@ -58,29 +53,22 @@
                     </div>
             </section>
             <section id="predict-view" class="view hidden-view">
-                <h1>Success Prediction</h1>
-                <p>Predict market success based on key attributes.</p>
+                <h1>Success Score</h1>
+                <p>A rule-based score built from the ratings and prices of past games in the same genre.</p>
 
                 <div class="prediction-layout">
                     <div class="card form-panel">
                         <label>Genre</label>
                         <select id="pred-genre">
-                            <option value="RPG">Action RPG</option>
-                            <option value="Strategy">Strategy</option>
-                            <option value="Shooter">Shooter</option>
-                            </select>
+                            <option value="">Loading genres...</option>
+                        </select>
 
                             <label>Price (USD)</label>
                             <input type="number" id="pred-price" value="29.99">
 
-                            <label>Platform</label>
-                            <select id="pred-platform">
-                                <option value="PC">PC / Steam</option>
-                                <option value="Console">Console</option>
-                            </select>
                             <label>Expected Release Date</label>
                             <input type="date" id="pred-date" value="2026-10-15">
-                            <button id="predictBtn">Predict Success</button>
+                            <button id="predictBtn">Calculate Score</button>
                     </div>
                     <div class="card result-panel" id="prediction-result">
                         <div class="empty-state">No prediction yet. Fill out the form.</div>
@@ -92,7 +80,7 @@
                 <div class="metric-cards" id="trend-metrics">
                 </div>
                 <div class="card chart-container" style="margin-top: 20px;">
-                    <h3>Genre Growth Over Time</h3>
+                    <h3>Games Released per Year: Two Most Common Genres</h3>
                     <canvas id="trendsChart"></canvas>
                 </div>
             </section>

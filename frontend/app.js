@@ -12,11 +12,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Populate top cards
             document.getElementById('dash-metrics').innerHTML = `
-                <div class="card">Total Games Analyzed<br><strong style="color: #8b5cf6">${data.metrics.total_games}</strong></div>
-                <div class="card">Average Market Rating<br><strong style="color: #10b981">${data.metrics.average_rating}</strong></div>
-                <div class="card">Trending Genre<br><strong>${data.metrics.top_genre}</strong></div>
-                <div class="card">Risk Indicator<br><strong style="color: #f59e0b">${data.metrics.risk_indicator}</strong></div>
+                <div class="card">Games in Dataset<br><strong style="color: #8b5cf6">${data.metrics.total_games}</strong></div>
+                <div class="card">Average Rating<br><strong style="color: #10b981">${data.metrics.average_rating}/10</strong></div>
+                <div class="card">Most Common Genre<br><strong>${data.metrics.top_genre}</strong></div>
+                <div class="card">Average Price<br><strong>${data.metrics.average_price}</strong></div>
             `;
+
+            // Fill the genre dropdown with genres that have at least 20 games
+            const genreSelect = document.getElementById('pred-genre');
+            genreSelect.innerHTML = data.genre_options
+                .map(g => `<option value="${g}">${g}</option>`)
+                .join('');
 
             // Draw Genre Bar Chart
             new Chart(document.getElementById('genreChart').getContext('2d'), {
@@ -111,12 +117,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 const card = document.createElement('div');
                 card.className = 'result-card';
                 // Generate HTML for the NLP tags
-                const tagsHtml = game.tags.map(tag => 
+                const tagsHtml = (game.tags || []).map(tag => 
                     `<span style="background: rgba(139, 92, 246, 0.15); color: #a78bfa; padding: 4px 10px; border-radius: 12px; font-size: 0.75rem; margin-right: 6px; display: inline-block; margin-top: 10px; border: 1px solid rgba(139, 92, 246, 0.3);">${tag}</span>`
                 ).join('');
 
                 card.innerHTML = `
-                    <div class="match-pill">${game.match}</div>
                     <h3>${game.title}</h3>
                     <p style="color: #94a3b8; margin-top: 10px; font-size: 0.9rem;">🏢 ${game.publisher}</p>
                     <p style="color: #94a3b8; margin-top: 5px;">🎮 ${game.genre} &nbsp;|&nbsp; ⭐ ${game.rating}/10</p>
@@ -139,26 +144,26 @@ document.addEventListener('DOMContentLoaded', () => {
         predictBtn.addEventListener('click', async () => {
             const genre = document.getElementById('pred-genre').value;
             const price = document.getElementById('pred-price').value;
-            const platform = document.getElementById('pred-platform').value;
-            const releaseDate = document.getElementById('pred-date').value; // Grab date
+            const releaseDate = document.getElementById('pred-date').value;
 
-            resultPanel.innerHTML = '<p>Running ML Model...</p>';
+            resultPanel.innerHTML = '<p>Calculating...</p>';
 
             try {
                 const response = await fetch('http://localhost:3000/api/predict', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ genre, price, platform, releaseDate })
+                    body: JSON.stringify({ genre, price, releaseDate })
                 });
                 const data = await response.json();
 
                 if(data.error) throw new Error(data.error);
 
                 resultPanel.innerHTML = `
-                    <h2 style="color: #94a3b8">Predicted Success</h2>
-                    <div class="success-score">${data.success_probability}</div>
+                    <h2 style="color: #94a3b8">Success Score</h2>
+                    <div class="success-score">${data.score}</div>
                     <p>Risk Level: <strong style="color: ${data.risk_level === 'Low' ? '#10b981' : '#f59e0b'}">${data.risk_level}</strong></p>
-                    <p style="margin-top: 15px; color: #94a3b8">${data.recommendation}</p>
+                    <p style="margin-top: 15px; color: #94a3b8">${data.explanation}</p>
+                    <p style="margin-top: 10px; color: #64748b; font-size: 0.85rem">Rule-based score out of 100, not a probability. See the README for how it is calculated.</p>
                 `;
             } catch (err) {
                 resultPanel.innerHTML = `<p style="color: red;">Error: ${err.message}</p>`;
@@ -181,9 +186,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 // 1. Populate Metric Cards
                 document.getElementById('trend-metrics').innerHTML = `
-                    <div class="card">Market Growth<br><strong style="color: #10b981">${data.metrics.market_growth}</strong></div>
-                    <div class="card">Avg Price<br><strong>${data.metrics.average_price}</strong></div>
-                    <div class="card">Top Genre<br><strong>${data.metrics.top_genre}</strong></div>
+                    <div class="card">Average Price Change<br><strong style="color: #10b981">${data.metrics.avg_price_change}</strong></div>
+                    <div class="card">Average Price<br><strong>${data.metrics.average_price}</strong></div>
+                    <div class="card">Most Common Genre<br><strong>${data.metrics.top_genre}</strong></div>
                 `;
 
                 // 2. Render Chart.js

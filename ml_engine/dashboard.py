@@ -52,20 +52,23 @@ def get_dashboard_stats():
         genre1_data.append(g1_count)
         genre2_data.append(g2_count)
 
-    # Safely calculate market growth
-    market_growth_str = "+0.0%"
+    # Change in average price between the first and last of those years
+    price_change_str = "n/a"
     if len(trend_data) >= 2 and trend_data[0] > 0:
-        growth_calc = ((trend_data[-1] - trend_data[0]) / trend_data[0]) * 100
-        sign = "+" if growth_calc > 0 else ""
-        market_growth_str = f"{sign}{growth_calc:.1f}%"
+        change = ((trend_data[-1] - trend_data[0]) / trend_data[0]) * 100
+        sign = "+" if change > 0 else ""
+        price_change_str = f"{sign}{change:.1f}% ({trend_labels[0]}-{trend_labels[-1]})"
+
+    # Genres with enough games to be offered in the prediction form
+    genre_counts_all = df[COL_GENRE].value_counts()
+    genre_options = genre_counts_all[genre_counts_all >= 20].index.tolist()
 
     return {
         "metrics": {
             "total_games": f"{total_games:,}",
             "average_rating": f"{avg_rating:.1f}",
             "top_genre": str(top_genre),
-            "risk_indicator": "Medium",
-            "market_growth": market_growth_str,
+            "avg_price_change": price_change_str,
             "average_price": f"${df[COL_PRICE].mean():.2f}"
         },
         "genre_distribution": {
@@ -76,6 +79,7 @@ def get_dashboard_stats():
             "labels": trend_labels,
             "data": trend_data
         },
+        "genre_options": genre_options,
         "chart_data": {
             "labels": chart_labels,
             "genre1_name": genre1,
@@ -85,7 +89,6 @@ def get_dashboard_stats():
         }
     }
 
-# THIS IS THE TRIGGER BLOCK THAT WAS MISSING!
 if __name__ == "__main__":
     try:
         print(json.dumps(get_dashboard_stats()))
