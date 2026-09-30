@@ -8,7 +8,7 @@ GamePulse helps a game studio or publisher judge a Steam game **before it is rel
 
 GamePulse went through three versions. The later two came from asking whether the earlier one actually worked.
 
-- **Version 1: course project.** Built by a team of three for a semester-long Software Engineering and Project Management course, using sprints and user stories. It used 1,271 games and a hand-written rule to score how successful a new game might be. The submitted version is preserved at the tag [`v1-course-submission`](https://github.com/mayanksharma2511/GamePulse/tree/v1-course-submission).
+- **Version 1: course project.** Built by a team of three for a semester-long Software Engineering and Project Management course, using sprints and user stories. It used 1,271 Nintendo Switch games that the team collected from Wikipedia and Switch Scores, and a hand-written rule to score how successful a new game might be. The submitted version is preserved at the tag [`v1-course-submission`](https://github.com/mayanksharma2511/GamePulse/tree/v1-course-submission).
 - **Version 2: testing the rule.** After the course, I (Mayank Sharma) tested that rule on games released after the ones it was built from. About a quarter of the dataset's ratings and prices turned out to be filled-in averages, and the rule's scores had no relationship with real ratings (Spearman ρ = −0.05). It was less accurate than always guessing the average. The best learned model improved on that average only modestly, because the data contained little information about how games are received. Details: [`analysis/`](analysis/).
 - **Version 3: better data.** I rebuilt GamePulse on 26,913 Steam games with the information that matters before launch (store features, descriptions and each studio's track record), with real outcomes (review scores and review counts) to test against. This is the current app. Details: [`steam_analysis/`](steam_analysis/).
 
@@ -67,6 +67,7 @@ Every model is clearly better than its baseline: the 95% bootstrap intervals of 
 - The reach range has the same width for every game and covered 77.3% of test games, slightly below its 80% target.
 - Price, platforms and store features are as listed in 2019, which can differ from launch.
 - The reception model only covers games that reached 50+ reviews.
+- The Launch Planner assumes the game will be available in English, as 98.1% of the games in the data were.
 
 ## Reproducing the results
 
@@ -129,5 +130,7 @@ docs/             screenshots
 ## Data and credits
 
 Steam data: ["Steam Store Games (Clean dataset)"](https://www.kaggle.com/datasets/nikdavis/steam-store-games) by Nik Davis, collected from the Steam store and SteamSpy, licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Only the store ID and short description were kept from its description file.
+
+Version 1 data (`analysis/finalData.csv`): 1,271 Nintendo Switch games. The team scraped game titles from Wikipedia's *List of Nintendo Switch games* pages ([0–9 and A](https://en.wikipedia.org/wiki/List_of_Nintendo_Switch_games_%280%E2%80%939_and_A%29), [B](https://en.wikipedia.org/wiki/List_of_Nintendo_Switch_games_%28B%29), [C–G](https://en.wikipedia.org/wiki/List_of_Nintendo_Switch_games_%28C%E2%80%93G%29), [H–P](https://en.wikipedia.org/wiki/List_of_Nintendo_Switch_games_%28H%E2%80%93P%29), [Q–Z](https://en.wikipedia.org/wiki/List_of_Nintendo_Switch_games_%28Q%E2%80%93Z%29)), each game's plot from its Wikipedia article, and further game data from [Switch Scores](https://www.switchscores.com/games/by-title). Wikipedia text is licensed under [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/).
 
 Tech: Python (pandas, NumPy, SciPy, scikit-learn), Node.js, Express, JavaScript, Chart.js.
