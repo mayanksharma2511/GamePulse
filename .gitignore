@@ -4,3 +4,4 @@ __pycache__/
 *.pyc
 .env
 steam_analysis/data/raw/steam_description_data.csv
+*.code-workspace
