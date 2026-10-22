@@ -22,6 +22,8 @@ GamePulse went through three versions. The later two came from asking whether th
 
 ## Results on games the models had not seen
 
+**Spark version of the data pipeline.** `steam_analysis/prepare_data_spark.py` rebuilds the data preparation in PySpark, using window functions for the studio track records. Its output is identical to the pandas version (26,913 rows × 41 columns), and it processed 2.69 million rows (100 renamed copies of the data) in 78 seconds on a 2-core machine, 7.8× faster than pandas at 269,000 rows. Details: [`steam_analysis/SPARK.md`](steam_analysis/SPARK.md).
+
 Models were trained on games released 2014–2017 and tested on 8,120 games released in 2018. Full details: [`steam_analysis/EVALUATION.md`](steam_analysis/EVALUATION.md) and [`steam_analysis/MODELS.md`](steam_analysis/MODELS.md).
 
 **Reception: will a game be Very Positive (80%+ positive reviews)?** (2,003 test games with 50+ reviews; 52.9% were Very Positive)
